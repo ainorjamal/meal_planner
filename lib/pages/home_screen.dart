@@ -1,3 +1,4 @@
+// ignore: depend_on_referenced_packages
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -7,6 +8,7 @@ import '../screens/add_meal_screen.dart';
 import '../screens/calendar_screen.dart';
 import '../screens/meal_details_screen.dart';
 import '../screens/recipes_screen.dart';
+import '../screens/user_profile_screen.dart';
 // Import the Firestore service
 import '../services/firestore.dart';
 
@@ -82,39 +84,6 @@ class _HomeScreenState extends State<HomeScreen> {
               });
             },
           ),
-          IconButton(
-            icon: Icon(Icons.logout),
-            tooltip: 'Logout',
-            onPressed: () async {
-              bool confirm =
-                  await showDialog(
-                    context: context,
-                    builder:
-                        (context) => AlertDialog(
-                          title: Text('Logout'),
-                          content: Text('Are you sure you want to logout?'),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.of(context).pop(false),
-                              child: Text('Cancel'),
-                            ),
-                            TextButton(
-                              onPressed: () => Navigator.of(context).pop(true),
-                              child: Text('Logout'),
-                              style: TextButton.styleFrom(
-                                foregroundColor: Colors.red,
-                              ),
-                            ),
-                          ],
-                        ),
-                  ) ??
-                  false;
-
-              if (confirm) {
-                await authService.value.signOut();
-              }
-            },
-          ),
         ],
       ),
       body: _getBody(),
@@ -124,7 +93,7 @@ class _HomeScreenState extends State<HomeScreen> {
         unselectedItemColor:
             _isDarkMode ? Colors.grey.shade400 : Colors.grey.shade500,
         backgroundColor: _isDarkMode ? Colors.grey.shade900 : Colors.white,
-        type: BottomNavigationBarType.fixed, // Added to support 5 items
+        type: BottomNavigationBarType.fixed,
         onTap: (index) {
           if (index == 1) {
             // Calendar tab
@@ -137,6 +106,12 @@ class _HomeScreenState extends State<HomeScreen> {
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => RecipesScreen()),
+            );
+          } else if (index == 3) {
+            // Profile tab - navigate to the new UserProfileScreen
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => UserProfileScreen()),
             );
           } else {
             setState(() {
@@ -181,13 +156,11 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _getBody() {
-    switch (_currentIndex) {
-      case 0:
-        return _buildHomeContent();
-      case 3:
-        return _buildProfileContent();
-      default:
-        return _buildHomeContent();
+    if (_currentIndex == 0) {
+      return _buildHomeContent();
+    } else {
+      // Fallback for any other tab index
+      return _buildHomeContent();
     }
   }
 
