@@ -26,11 +26,6 @@ class MealPlannerApp extends StatelessWidget {
         '/login': (context) => LoginScreen(),
         '/register': (context) => RegisterScreen(),
         '/home': (context) => HomeScreen(),
-        '/mealDetails':
-            (context) => MealDetailsScreen(
-              mealName: ModalRoute.of(context)!.settings.arguments as String,
-              ingredients: 'Sample Ingredients', // Replace with actual data
-            ),
         '/addMeal': (context) => AddMealScreen(),
       },
     );
