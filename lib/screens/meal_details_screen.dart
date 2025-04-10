@@ -32,10 +32,7 @@ class MealDetailsScreen extends StatelessWidget {
             SizedBox(height: 8),
             Text(ingredients),
             SizedBox(height: 16),
-            Text(
-              'Meal ID: $mealId', // Display the meal ID (for debugging/reference)
-              style: TextStyle(fontSize: 16, color: Colors.grey),
-            ),
+
             // You can add more details here based on the mealId
           ],
         ),

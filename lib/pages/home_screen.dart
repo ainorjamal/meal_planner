@@ -378,30 +378,106 @@ class _HomeScreenState extends State<HomeScreen> {
                     setState(() {});
                   });
                 },
-                trailing: IconButton(
-                  icon: Icon(Icons.edit),
-                  onPressed: () {
-                    // Create a map with the meal data and ID for editing
-                    final editableMeal = {
-                      'id': mealId,
-                      'title': title,
-                      'description': description,
-                      'time': time,
-                      'mealType': mealType,
-                      'logged': isLogged,
-                    };
 
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder:
-                            (context) =>
-                                AddMealScreen(mealToEdit: editableMeal),
-                      ),
-                    ).then((_) {
-                      setState(() {});
-                    });
-                  },
+                // Modify the trailing property in your ListTile within the _buildMealList() method
+                // Replace the existing trailing: IconButton(...) with this:
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: Icon(Icons.edit),
+                      tooltip: 'Edit meal',
+                      onPressed: () {
+                        // Create a map with the meal data and ID for editing
+                        final editableMeal = {
+                          'id': mealId,
+                          'title': title,
+                          'description': description,
+                          'time': time,
+                          'mealType': mealType,
+                          'logged': isLogged,
+                        };
+
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder:
+                                (context) =>
+                                    AddMealScreen(mealToEdit: editableMeal),
+                          ),
+                        ).then((_) {
+                          setState(() {});
+                        });
+                      },
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.delete, color: Colors.red),
+                      tooltip: 'Delete meal',
+                      onPressed: () async {
+                        bool confirmDelete =
+                            await showDialog(
+                              context: context,
+                              builder:
+                                  (context) => AlertDialog(
+                                    title: Text('Delete Meal'),
+                                    content: Text(
+                                      'Are you sure you want to delete this meal?',
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        onPressed:
+                                            () => Navigator.of(
+                                              context,
+                                            ).pop(false),
+                                        child: Text('Cancel'),
+                                      ),
+                                      TextButton(
+                                        onPressed:
+                                            () =>
+                                                Navigator.of(context).pop(true),
+                                        child: Text('Delete'),
+                                        style: TextButton.styleFrom(
+                                          foregroundColor: Colors.red,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                            ) ??
+                            false;
+
+                        if (confirmDelete) {
+                          try {
+                            await _firestoreService.deleteMeal(mealId);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Meal deleted'),
+                                action: SnackBarAction(
+                                  label: 'Undo',
+                                  onPressed: () async {
+                                    // Attempt to re-add the deleted meal
+                                    await _firestoreService.addMeal(
+                                      title: mealData['title'] ?? '',
+                                      description:
+                                          mealData['description'] ?? '',
+                                      time: mealData['time'] ?? '',
+                                      mealType: mealData['mealType'],
+                                    );
+                                  },
+                                ),
+                              ),
+                            );
+                          } catch (e) {
+                            // ignore: use_build_context_synchronously
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Error deleting meal: $e'),
+                              ),
+                            );
+                          }
+                        }
+                      },
+                    ),
+                  ],
                 ),
               ),
             );
