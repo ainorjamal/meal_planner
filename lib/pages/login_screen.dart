@@ -29,11 +29,23 @@ class _LoginScreenState extends State<LoginScreen> {
       });
 
       try {
-        await authService.value.signIn(
+        UserCredential userCredential = await authService.value.signIn(
           email: _emailController.text.trim(),
           password: _passwordController.text.trim(),
         );
-        // No need to navigate as AuthWrapper will handle it
+
+        User? user = userCredential.user;
+
+        if (user != null && !user.emailVerified) {
+          await FirebaseAuth.instance.signOut();
+          setState(() {
+            _errorMessage =
+                'Your account is not yet verified.\nPlease check your email inbox or spam folder to verify your account.';
+          });
+          return;
+        }
+
+        // Let AuthWrapper handle navigation
       } on FirebaseAuthException catch (e) {
         setState(() {
           _errorMessage = _getErrorMessage(e.code);
@@ -43,11 +55,9 @@ class _LoginScreenState extends State<LoginScreen> {
           _errorMessage = 'An unexpected error occurred. Please try again.';
         });
       } finally {
-        if (mounted) {
-          setState(() {
-            _isLoading = false;
-          });
-        }
+        setState(() {
+          _isLoading = false;
+        });
       }
     }
   }
@@ -133,6 +143,37 @@ class _LoginScreenState extends State<LoginScreen> {
                       style: const TextStyle(color: Colors.red),
                       textAlign: TextAlign.center,
                     ),
+                    if (_errorMessage.contains('not yet verified')) ...[
+                      const SizedBox(height: 8),
+                      TextButton(
+                        onPressed: () async {
+                          try {
+                            final user = await FirebaseAuth.instance
+                                .signInWithEmailAndPassword(
+                                  email: _emailController.text.trim(),
+                                  password: _passwordController.text.trim(),
+                                )
+                                .then((cred) => cred.user);
+                            await user?.sendEmailVerification();
+                            await FirebaseAuth.instance.signOut();
+
+                            setState(() {
+                              _errorMessage =
+                                  'Verification email resent. Please check your inbox or spam folder.';
+                            });
+                          } catch (e) {
+                            setState(() {
+                              _errorMessage =
+                                  'Failed to resend verification email.';
+                            });
+                          }
+                        },
+                        child: const Text(
+                          'Resend verification email',
+                          style: TextStyle(color: Colors.blue),
+                        ),
+                      ),
+                    ]
                   ],
                   const SizedBox(height: 24),
                   ElevatedButton(
@@ -141,18 +182,17 @@ class _LoginScreenState extends State<LoginScreen> {
                       padding: const EdgeInsets.symmetric(vertical: 16.0),
                       backgroundColor: Theme.of(context).primaryColor,
                     ),
-                    child:
-                        _isLoading
-                            ? const CircularProgressIndicator(
+                    child: _isLoading
+                        ? const CircularProgressIndicator(
+                            color: Colors.white,
+                          )
+                        : const Text(
+                            'LOGIN',
+                            style: TextStyle(
+                              fontSize: 16,
                               color: Colors.white,
-                            )
-                            : const Text(
-                              'LOGIN',
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.white,
-                              ),
                             ),
+                          ),
                   ),
                   const SizedBox(height: 16),
                   TextButton(

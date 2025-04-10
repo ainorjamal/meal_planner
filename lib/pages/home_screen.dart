@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../auth/auth_service.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 // Import screens from the screens directory
 import '../screens/add_meal_screen.dart';
 import '../screens/calendar_screen.dart';
@@ -190,10 +191,12 @@ class _HomeScreenState extends State<HomeScreen> {
   // Grocery tab content
 
   // Profile tab content
-  Widget _buildProfileContent() {
-    return Center(
+    Widget _buildProfileContent() {
+    User? user = FirebaseAuth.instance.currentUser;
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16.0),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           CircleAvatar(
             radius: 50,
@@ -202,11 +205,14 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           SizedBox(height: 16),
           Text(
-            'User Name',
+            user?.displayName ?? 'User Name',
             style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           ),
           SizedBox(height: 8),
-          Text('user@example.com', style: TextStyle(color: Colors.grey)),
+          Text(
+            user?.email ?? 'No email',
+            style: TextStyle(color: Colors.grey),
+          ),
           SizedBox(height: 32),
           ListTile(
             leading: Icon(Icons.settings),
@@ -227,6 +233,48 @@ class _HomeScreenState extends State<HomeScreen> {
             leading: Icon(Icons.help),
             title: Text('Help & Support'),
             onTap: () {},
+          ),
+          Divider(height: 32),
+          ListTile(
+            leading: Icon(Icons.edit),
+            title: Text('Edit Profile'),
+            onTap: () {
+              Navigator.pushNamed(context, '/editProfile');
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.delete_forever, color: Colors.red),
+            title: Text('Delete Account', style: TextStyle(color: Colors.red)),
+            onTap: () async {
+              final confirm = await showDialog<bool>(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: Text('Delete Account'),
+                  content: Text('Are you sure you want to delete your account? This action cannot be undone.'),
+                  actions: [
+                    TextButton(
+                      child: Text('Cancel'),
+                      onPressed: () => Navigator.of(context).pop(false),
+                    ),
+                    TextButton(
+                      child: Text('Delete', style: TextStyle(color: Colors.red)),
+                      onPressed: () => Navigator.of(context).pop(true),
+                    ),
+                  ],
+                ),
+              );
+
+              if (confirm == true) {
+                try {
+                  await user?.delete();
+                  // Navigate away or log out
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Failed to delete account: $e')),
+                  );
+                }
+              }
+            },
           ),
         ],
       ),

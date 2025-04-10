@@ -5,6 +5,7 @@ import 'screens/meal_details_screen.dart';
 import 'screens/add_meal_screen.dart';
 import 'pages/login_screen.dart';
 import 'pages/register_screen.dart';
+import 'pages/editProfile_screen.dart';
 import 'auth/auth_service.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
@@ -32,6 +33,7 @@ class MealPlannerApp extends StatelessWidget {
               ingredients: 'Sample Ingredients', // Replace with actual data
             ),
         '/addMeal': (context) => AddMealScreen(),
+        '/editProfile': (context) => EditProfileScreen(),
       },
     );
   }
