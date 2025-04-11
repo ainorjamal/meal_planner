@@ -170,11 +170,12 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   // Navigate to settings screen
                 },
               ),
+              // Add a ListTile for 'Favorite Recipes' in the profile content
               ListTile(
                 leading: Icon(Icons.favorite),
                 title: Text('Favorite Recipes'),
                 onTap: () {
-                  // Navigate to favorites screen
+                  Navigator.pushNamed(context, '/favorites');
                 },
               ),
               ListTile(

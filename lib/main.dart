@@ -8,6 +8,7 @@ import 'pages/editProfile_screen.dart';
 import 'auth/auth_service.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
+import 'pages/favorites_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -28,6 +29,7 @@ class MealPlannerApp extends StatelessWidget {
         '/home': (context) => HomeScreen(),
         '/addMeal': (context) => AddMealScreen(),
         '/editProfile': (context) => EditProfileScreen(),
+        '/favorites': (context) => FavoritesScreen(), 
       },
     );
   }
