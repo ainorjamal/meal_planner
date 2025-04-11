@@ -3,8 +3,10 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../models/recipe.dart';
 import '../widgets/recipe_card.dart';
-import 'recipe_detail_screen.dart'; // <-- Make sure this import exists
-import 'package:firebase_auth/firebase_auth.dart'; // <-- Import Firebase Auth
+import 'recipe_detail_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'calendar_screen.dart';
+import 'user_profile_screen.dart';
 
 class RecipesScreen extends StatefulWidget {
   @override
@@ -15,6 +17,9 @@ class _RecipesScreenState extends State<RecipesScreen> {
   List<Recipe> _recipes = [];
   String _selectedCategory = 'All';
   String? userId;
+  int _currentIndex = 2; // Set to 2 for Recipes tab
+  bool _isDarkMode = false;
+  Color primaryColor = Colors.green;
 
   @override
   void initState() {
@@ -52,6 +57,10 @@ class _RecipesScreenState extends State<RecipesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Check if dark mode is enabled
+    _isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    primaryColor = Theme.of(context).primaryColor;
+    
     final filteredRecipes = _recipes.where((recipe) {
       return _selectedCategory == 'All' || recipe.category == _selectedCategory;
     }).toList();
@@ -88,7 +97,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                   MaterialPageRoute(
                     builder: (context) => RecipeDetailScreen(
                       recipe: filteredRecipes[index],
-                      userId: userId!, // <-- Pass userId here
+                      userId: userId!,
                     ),
                   ),
                 );
@@ -105,6 +114,52 @@ class _RecipesScreenState extends State<RecipesScreen> {
             ),
           );
         },
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _currentIndex,
+        selectedItemColor: primaryColor,
+        unselectedItemColor:
+            _isDarkMode ? Colors.grey.shade400 : Colors.grey.shade500,
+        backgroundColor: _isDarkMode ? Colors.grey.shade900 : Colors.white,
+        type: BottomNavigationBarType.fixed,
+        onTap: (index) {
+          if (index == 0) {
+            // Home tab
+            Navigator.pop(context);
+          } else if (index == 1) {
+            // Calendar tab
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => CalendarScreen()),
+            );
+          } else if (index == 2) {
+            // Current Recipes tab - do nothing
+          } else if (index == 3) {
+            // Profile tab
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => UserProfileScreen()),
+            );
+          }
+        },
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home_outlined),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.calendar_today_outlined),
+            label: 'Calendar',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.food_bank_outlined),
+            label: 'Recipes',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person_outline),
+            label: 'Profile',
+          ),
+        ],
       ),
     );
   }

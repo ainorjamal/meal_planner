@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
+import 'package:flutter/material.dart';
+import '../screens/recipes_screen.dart';
+import '../screens/user_profile_screen.dart';
 
 class CalendarScreen extends StatefulWidget {
   @override
@@ -10,6 +13,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
   CalendarFormat _calendarFormat = CalendarFormat.month;
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
+  int _currentIndex = 1; // Set to 1 for Calendar tab
+  bool _isDarkMode = false;
+  Color primaryColor = Colors.green;
 
   // Example meal data mapped by date
   final Map<DateTime, List<MealEvent>> _mealEvents = {
@@ -53,6 +59,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Check if dark mode is enabled
+    _isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    primaryColor = Theme.of(context).primaryColor;
+    
     return Scaffold(
       appBar: AppBar(
         title: Text('Meal Calendar'),
@@ -97,6 +107,52 @@ class _CalendarScreenState extends State<CalendarScreen> {
           ),
           const SizedBox(height: 8.0),
           Expanded(child: _buildEventList()),
+        ],
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _currentIndex,
+        selectedItemColor: primaryColor,
+        unselectedItemColor:
+            _isDarkMode ? Colors.grey.shade400 : Colors.grey.shade500,
+        backgroundColor: _isDarkMode ? Colors.grey.shade900 : Colors.white,
+        type: BottomNavigationBarType.fixed,
+        onTap: (index) {
+          if (index == 0) {
+            // Home tab
+            Navigator.pop(context);
+          } else if (index == 1) {
+            // Current Calendar tab - do nothing
+          } else if (index == 2) {
+            // Recipes tab
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => RecipesScreen()),
+            );
+          } else if (index == 3) {
+            // Profile tab
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => UserProfileScreen()),
+            );
+          }
+        },
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home_outlined),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.calendar_today_outlined),
+            label: 'Calendar',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.food_bank_outlined),
+            label: 'Recipes',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person_outline),
+            label: 'Profile',
+          ),
         ],
       ),
       floatingActionButton: FloatingActionButton(

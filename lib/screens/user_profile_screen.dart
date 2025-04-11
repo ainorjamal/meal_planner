@@ -6,6 +6,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../auth/auth_service.dart';
+import '../screens/calendar_screen.dart';
+import '../screens/recipes_screen.dart';
 
 class UserProfileScreen extends StatefulWidget {
   @override
@@ -13,13 +15,65 @@ class UserProfileScreen extends StatefulWidget {
 }
 
 class _UserProfileScreenState extends State<UserProfileScreen> {
+  int _currentIndex = 3; // Set to 3 for Profile tab
+  bool _isDarkMode = false;
+  Color primaryColor = Colors.green; // Your app's primary color
+
   @override
   Widget build(BuildContext context) {
     // Check if dark mode is enabled
+    _isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    primaryColor = Theme.of(context).primaryColor;
 
     return Scaffold(
       appBar: AppBar(title: Text('My Profile')),
       body: _buildProfileContent(),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _currentIndex,
+        selectedItemColor: primaryColor,
+        unselectedItemColor:
+            _isDarkMode ? Colors.grey.shade400 : Colors.grey.shade500,
+        backgroundColor: _isDarkMode ? Colors.grey.shade900 : Colors.white,
+        type: BottomNavigationBarType.fixed,
+        onTap: (index) {
+          if (index == 0) {
+            // Home tab
+            Navigator.pop(context);
+          } else if (index == 1) {
+            // Calendar tab
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => CalendarScreen()),
+            );
+          } else if (index == 2) {
+            // Recipes tab
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => RecipesScreen()),
+            );
+          } else if (index == 3) {
+            // Current Profile tab - do nothing
+          }
+        },
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home_outlined),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.calendar_today_outlined),
+            label: 'Calendar',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.food_bank_outlined),
+            label: 'Recipes',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person_outline),
+            label: 'Profile',
+          ),
+        ],
+      ),
     );
   }
 
