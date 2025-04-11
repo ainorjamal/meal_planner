@@ -249,12 +249,6 @@ class _RecipesScreenState extends State<RecipesScreen> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // Navigate to add new recipe
-        },
-        child: Icon(Icons.add),
-      ),
     );
   }
 

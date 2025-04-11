@@ -1,30 +1,39 @@
 import 'package:flutter/material.dart';
 
 class MealDetailsScreen extends StatelessWidget {
+  final String mealId;
   final String mealName;
   final String ingredients;
 
-  MealDetailsScreen({required this.mealName, required this.ingredients});
+  MealDetailsScreen({
+    required this.mealId,
+    required this.mealName,
+    required this.ingredients,
+  });
 
   @override
   Widget build(BuildContext context) {
-    // Get the meal name and ingredients from the arguments
-    final String mealName =
-        ModalRoute.of(context)!.settings.arguments as String;
-    final String ingredients = 'Sample Ingredients'; // Replace with actual data
-
     return Scaffold(
-      appBar: AppBar(title: Text(mealName)),
+      appBar: AppBar(title: Text('Meal Details')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Ingredients:', style: TextStyle(fontSize: 20)),
-            SizedBox(height: 10),
+            Text(
+              mealName,
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 16),
+            Text(
+              'Ingredients:',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 8),
             Text(ingredients),
-            SizedBox(height: 20),
-            ElevatedButton(onPressed: () {}, child: Text('Edit Meal Plan')),
+            SizedBox(height: 16),
+
+            // You can add more details here based on the mealId
           ],
         ),
       ),
