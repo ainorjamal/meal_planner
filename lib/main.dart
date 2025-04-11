@@ -4,9 +4,11 @@ import 'pages/home_screen.dart';
 import 'screens/add_meal_screen.dart';
 import 'pages/login_screen.dart';
 import 'pages/register_screen.dart';
+import 'pages/editProfile_screen.dart';
 import 'auth/auth_service.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
+import 'pages/favorites_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,6 +28,8 @@ class MealPlannerApp extends StatelessWidget {
         '/register': (context) => RegisterScreen(),
         '/home': (context) => HomeScreen(),
         '/addMeal': (context) => AddMealScreen(),
+        '/editProfile': (context) => EditProfileScreen(),
+        '/favorites': (context) => FavoritesScreen(), 
       },
     );
   }
