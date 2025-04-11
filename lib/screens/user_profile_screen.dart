@@ -1,4 +1,7 @@
 // ignore: depend_on_referenced_packages
+// ignore_for_file: use_key_in_widget_constructors, library_private_types_in_public_api
+
+// ignore: depend_on_referenced_packages
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -10,39 +13,9 @@ class UserProfileScreen extends StatefulWidget {
 }
 
 class _UserProfileScreenState extends State<UserProfileScreen> {
-  bool _isDarkMode = false;
-
-  Future<String?> _showPasswordPrompt(BuildContext context) async {
-    final TextEditingController passwordController = TextEditingController();
-    return showDialog<String>(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        title: Text('Confirm Password'),
-        content: TextField(
-          controller: passwordController,
-          obscureText: true,
-          decoration: InputDecoration(labelText: 'Enter your password'),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(null),
-            child: Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () =>
-                Navigator.of(context).pop(passwordController.text.trim()),
-            child: Text('Confirm'),
-          ),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     // Check if dark mode is enabled
-    _isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       appBar: AppBar(title: Text('My Profile')),
