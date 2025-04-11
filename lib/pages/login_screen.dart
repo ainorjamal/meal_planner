@@ -136,6 +136,37 @@ class _LoginScreenState extends State<LoginScreen> {
                       return null;
                     },
                   ),
+                  // Add this inside the build method, right after the password field
+                  const SizedBox(height: 8),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: () async {
+                        final email = _emailController.text.trim();
+                        if (email.isEmpty || !RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email)) {
+                          setState(() {
+                            _errorMessage = 'Please enter a valid email address to reset your password.';
+                          });
+                          return;
+                        }
+
+                        try {
+                          await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+                          setState(() {
+                            _errorMessage = 'Password reset email sent. Please check your inbox.';
+                          });
+                        } catch (e) {
+                          setState(() {
+                            _errorMessage = 'Failed to send password reset email. Please try again.';
+                          });
+                        }
+                      },
+                      child: const Text(
+                        'Forgot Password?',
+                        style: TextStyle(color: Colors.blue),
+                      ),
+                    ),
+                  ),
                   if (_errorMessage.isNotEmpty) ...[
                     const SizedBox(height: 16),
                     Text(

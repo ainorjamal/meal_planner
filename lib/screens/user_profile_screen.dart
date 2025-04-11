@@ -12,6 +12,33 @@ class UserProfileScreen extends StatefulWidget {
 class _UserProfileScreenState extends State<UserProfileScreen> {
   bool _isDarkMode = false;
 
+  Future<String?> _showPasswordPrompt(BuildContext context) async {
+    final TextEditingController passwordController = TextEditingController();
+    return showDialog<String>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: Text('Confirm Password'),
+        content: TextField(
+          controller: passwordController,
+          obscureText: true,
+          decoration: InputDecoration(labelText: 'Enter your password'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(null),
+            child: Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () =>
+                Navigator.of(context).pop(passwordController.text.trim()),
+            child: Text('Confirm'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     // Check if dark mode is enabled
@@ -196,6 +223,60 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
                     // Redirect to login screen
                     Navigator.pushReplacementNamed(context, '/login'); // Make sure to set up your route for login
+                  }
+                },
+              ),
+
+              ListTile(
+                leading: Icon(Icons.delete_forever, color: Colors.red),
+                title: Text('Delete Account', style: TextStyle(color: Colors.red)),
+                onTap: () async {
+                  bool confirmDelete = await showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                              title: Text('Delete Account'),
+                              content: Text(
+                                  'Are you sure you want to delete your account? This action cannot be undone.'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.of(context).pop(false),
+                                  child: Text('Cancel'),
+                                ),
+                                TextButton(
+                                  onPressed: () => Navigator.of(context).pop(true),
+                                  child: Text('Delete'),
+                                  style: TextButton.styleFrom(
+                                    foregroundColor: Colors.red,
+                                  ),
+                                ),
+                              ],
+                            ),
+                      ) ??
+                      false;
+
+                  if (confirmDelete) {
+                    final user = authService.value.currentUser;
+                    if (user != null) {
+                      try {
+                        // Delete user data in Firestore
+                        await FirebaseFirestore.instance
+                            .collection('users')
+                            .doc(user.uid)
+                            .delete();
+
+                        // Delete Firebase user account
+                        await user.delete();
+
+                        // Navigate to login screen
+                        if (mounted) {
+                          Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+                        }
+                      } catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Error deleting account: $e')),
+                        );
+                      }
+                    }
                   }
                 },
               ),
