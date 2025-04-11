@@ -15,8 +15,10 @@ class _AddMealScreenState extends State<AddMealScreen> {
   final TextEditingController mealNameController = TextEditingController();
   final TextEditingController ingredientsController = TextEditingController();
   final TextEditingController timeController = TextEditingController();
+  final TextEditingController dateController = TextEditingController();
   String? _selectedMealType;
   TimeOfDay? _selectedTime;
+  DateTime _selectedDate = DateTime.now();
   final FirestoreService _firestoreService = FirestoreService();
 
   @override
@@ -28,6 +30,12 @@ class _AddMealScreenState extends State<AddMealScreen> {
       ingredientsController.text = widget.mealToEdit!['description'] ?? '';
       timeController.text = widget.mealToEdit!['time'] ?? '';
       _selectedMealType = widget.mealToEdit!['mealType'];
+
+      // Parse the date if it exists
+      if (widget.mealToEdit!['date'] != null) {
+        // The date is stored as a Timestamp in Firestore
+        _selectedDate = widget.mealToEdit!['date'].toDate();
+      }
 
       // Parse the time string if it exists
       if (widget.mealToEdit!['time'] != null &&
@@ -60,8 +68,9 @@ class _AddMealScreenState extends State<AddMealScreen> {
     // If no time was loaded or parsing failed, use current time
     _selectedTime ??= TimeOfDay.now();
 
-    // Update the text controller with the formatted time
+    // Update the text controllers
     _updateTimeController();
+    _updateDateController();
   }
 
   // Format time to display in the text field
@@ -73,6 +82,14 @@ class _AddMealScreenState extends State<AddMealScreen> {
       final String minute = _selectedTime!.minute.toString().padLeft(2, '0');
       timeController.text = '$hourIn12HourFormat:$minute $period';
     }
+  }
+
+  // Format date to display in the text field
+  void _updateDateController() {
+    final day = _selectedDate.day.toString().padLeft(2, '0');
+    final month = _selectedDate.month.toString().padLeft(2, '0');
+    final year = _selectedDate.year.toString();
+    dateController.text = '$month/$day/$year';
   }
 
   // Show time picker dialog
@@ -101,6 +118,35 @@ class _AddMealScreenState extends State<AddMealScreen> {
       setState(() {
         _selectedTime = pickedTime;
         _updateTimeController();
+      });
+    }
+  }
+
+  // Show date picker dialog
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate,
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2030),
+      builder: (BuildContext context, Widget? child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: ColorScheme.light(
+              primary: Theme.of(context).primaryColor,
+              onSurface:
+                  Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (pickedDate != null && pickedDate != _selectedDate) {
+      setState(() {
+        _selectedDate = pickedDate;
+        _updateDateController();
       });
     }
   }
@@ -137,6 +183,23 @@ class _AddMealScreenState extends State<AddMealScreen> {
                 fillColor: isDarkMode ? Colors.grey[800] : Colors.grey[100],
               ),
               maxLines: 3, // Allow multiple lines for ingredients
+            ),
+            SizedBox(height: 16),
+            // Date field with picker
+            GestureDetector(
+              onTap: () => _selectDate(context),
+              child: AbsorbPointer(
+                child: TextField(
+                  controller: dateController,
+                  decoration: InputDecoration(
+                    labelText: 'Date',
+                    border: OutlineInputBorder(),
+                    filled: true,
+                    fillColor: isDarkMode ? Colors.grey[800] : Colors.grey[100],
+                    suffixIcon: Icon(Icons.calendar_today),
+                  ),
+                ),
+              ),
             ),
             SizedBox(height: 16),
             // Time field with picker
@@ -204,6 +267,7 @@ class _AddMealScreenState extends State<AddMealScreen> {
                       title: title,
                       description: description,
                       time: time,
+                      date: _selectedDate, // Pass the selected date
                       mealType: mealType,
                     );
                   } else {
@@ -213,6 +277,7 @@ class _AddMealScreenState extends State<AddMealScreen> {
                       title: title,
                       description: description,
                       time: time,
+                      date: _selectedDate, // Pass the selected date
                       mealType: mealType,
                       logged: widget.mealToEdit!['logged'] ?? false,
                     );

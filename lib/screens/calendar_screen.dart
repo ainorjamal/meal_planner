@@ -1,6 +1,7 @@
+// ignore_for_file: use_key_in_widget_constructors, library_private_types_in_public_api, deprecated_member_use
+
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
-import 'package:flutter/material.dart';
 import '../screens/recipes_screen.dart';
 import '../screens/user_profile_screen.dart';
 
@@ -13,7 +14,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
   CalendarFormat _calendarFormat = CalendarFormat.month;
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
-  int _currentIndex = 1; // Set to 1 for Calendar tab
+  final int _currentIndex = 1; // Set to 1 for Calendar tab
   bool _isDarkMode = false;
   Color primaryColor = Colors.green;
 
@@ -62,7 +63,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
     // Check if dark mode is enabled
     _isDarkMode = Theme.of(context).brightness == Brightness.dark;
     primaryColor = Theme.of(context).primaryColor;
-    
+
     return Scaffold(
       appBar: AppBar(
         title: Text('Meal Calendar'),
