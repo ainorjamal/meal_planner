@@ -129,17 +129,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
             color: isDarkMode ? Colors.white : Colors.white,
           ),
         ),
+        automaticallyImplyLeading: false,
         backgroundColor: AppColors.primaryPurple,
         elevation: 0,
         centerTitle: true,
-        actions: [
-          IconButton(
-            icon: Icon(Icons.search, color: Colors.white),
-            onPressed: () {
-              // Add search functionality
-            },
-          ),
-        ],
       ),
       body: Container(
         decoration: BoxDecoration(
