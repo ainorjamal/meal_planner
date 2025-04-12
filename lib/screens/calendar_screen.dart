@@ -2,8 +2,11 @@
 
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../screens/recipes_screen.dart';
 import '../screens/user_profile_screen.dart';
+import '../screens/add_meal_screen.dart';
+import '../services/firestore.dart';
 
 class CalendarScreen extends StatefulWidget {
   @override
@@ -17,45 +20,86 @@ class _CalendarScreenState extends State<CalendarScreen> {
   final int _currentIndex = 1; // Set to 1 for Calendar tab
   bool _isDarkMode = false;
   Color primaryColor = Colors.green;
+  FirestoreService _firestoreService = FirestoreService();
+  Map<DateTime, List<MealEvent>> _mealEvents = {};
+  bool _isLoading = true;
 
-  // Example meal data mapped by date
-  final Map<DateTime, List<MealEvent>> _mealEvents = {
-    DateTime.now(): [
-      MealEvent('Breakfast', 'Oatmeal', '8:00 AM'),
-      MealEvent('Lunch', 'Grilled Chicken Salad', '12:30 PM'),
-      MealEvent('Dinner', 'Pasta with Tomato Sauce', '7:00 PM'),
-    ],
-    DateTime.now().add(Duration(days: 1)): [
-      MealEvent('Breakfast', 'Scrambled Eggs', '8:30 AM'),
-      MealEvent('Lunch', 'Vegetable Soup', '1:00 PM'),
-      MealEvent('Dinner', 'Grilled Salmon', '6:30 PM'),
-    ],
-    DateTime.now().add(Duration(days: 2)): [
-      MealEvent('Breakfast', 'Pancakes', '9:00 AM'),
-      MealEvent('Lunch', 'Caesar Salad', '12:00 PM'),
-      MealEvent('Dinner', 'Beef Stir Fry', '7:30 PM'),
-    ],
-  };
+  @override
+  void initState() {
+    super.initState();
+    _selectedDay = _focusedDay;
+    _loadMeals();
+  }
+
+  // Load meals from Firestore
+  Future<void> _loadMeals() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      // Listen to meals collection stream
+      _firestoreService.getMeals().listen((mealsSnapshot) {
+        final Map<DateTime, List<MealEvent>> newEvents = {};
+
+        for (var doc in mealsSnapshot.docs) {
+          final data = doc.data() as Map<String, dynamic>;
+          final id = doc.id;
+          data['id'] = id; // Add document ID to the data
+
+          if (data['date'] != null) {
+            // Convert Firestore Timestamp to DateTime
+            final DateTime mealDate = (data['date'] as Timestamp).toDate();
+            // Normalize date by removing time part
+            final DateTime normalizedDate = DateTime(
+              mealDate.year,
+              mealDate.month,
+              mealDate.day,
+            );
+
+            // Create a MealEvent from Firestore data
+            final MealEvent event = MealEvent(
+              data['mealType'] ?? 'Unknown',
+              data['title'] ?? 'Unnamed Meal',
+              data['time'] ?? '--:--',
+              data, // Store the full data for later use
+            );
+
+            // Add to events map
+            if (newEvents[normalizedDate] == null) {
+              newEvents[normalizedDate] = [];
+            }
+            newEvents[normalizedDate]!.add(event);
+          }
+        }
+
+        // Update state with new events
+        setState(() {
+          _mealEvents = newEvents;
+          _isLoading = false;
+        });
+      });
+    } catch (e) {
+      print('Error loading meals: $e');
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
 
   List<MealEvent> _getEventsForDay(DateTime day) {
     // Normalize date to remove time part for comparison
     final normalizedDay = DateTime(day.year, day.month, day.day);
 
     return _mealEvents.entries
-        .where(
-          (entry) =>
-              entry.key.year == normalizedDay.year &&
-              entry.key.month == normalizedDay.month &&
-              entry.key.day == normalizedDay.day,
-        )
+        .where((entry) {
+          final eventDay = entry.key;
+          return eventDay.year == normalizedDay.year &&
+              eventDay.month == normalizedDay.month &&
+              eventDay.day == normalizedDay.day;
+        })
         .expand((entry) => entry.value)
         .toList();
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _selectedDay = _focusedDay;
   }
 
   @override
@@ -72,44 +116,47 @@ class _CalendarScreenState extends State<CalendarScreen> {
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      body: Column(
-        children: [
-          TableCalendar(
-            firstDay: DateTime.utc(2023, 1, 1),
-            lastDay: DateTime.utc(2030, 12, 31),
-            focusedDay: _focusedDay,
-            calendarFormat: _calendarFormat,
-            selectedDayPredicate: (day) {
-              return isSameDay(_selectedDay, day);
-            },
-            onDaySelected: (selectedDay, focusedDay) {
-              setState(() {
-                _selectedDay = selectedDay;
-                _focusedDay = focusedDay;
-              });
-            },
-            onFormatChanged: (format) {
-              setState(() {
-                _calendarFormat = format;
-              });
-            },
-            onPageChanged: (focusedDay) {
-              _focusedDay = focusedDay;
-            },
-            // Add event markers
-            eventLoader: _getEventsForDay,
-            calendarStyle: CalendarStyle(
-              markersMaxCount: 3,
-              markerDecoration: BoxDecoration(
-                color: Theme.of(context).primaryColor,
-                shape: BoxShape.circle,
+      body:
+          _isLoading
+              ? Center(child: CircularProgressIndicator())
+              : Column(
+                children: [
+                  TableCalendar(
+                    firstDay: DateTime.utc(2023, 1, 1),
+                    lastDay: DateTime.utc(2030, 12, 31),
+                    focusedDay: _focusedDay,
+                    calendarFormat: _calendarFormat,
+                    selectedDayPredicate: (day) {
+                      return isSameDay(_selectedDay, day);
+                    },
+                    onDaySelected: (selectedDay, focusedDay) {
+                      setState(() {
+                        _selectedDay = selectedDay;
+                        _focusedDay = focusedDay;
+                      });
+                    },
+                    onFormatChanged: (format) {
+                      setState(() {
+                        _calendarFormat = format;
+                      });
+                    },
+                    onPageChanged: (focusedDay) {
+                      _focusedDay = focusedDay;
+                    },
+                    // Add event markers
+                    eventLoader: _getEventsForDay,
+                    calendarStyle: CalendarStyle(
+                      markersMaxCount: 3,
+                      markerDecoration: BoxDecoration(
+                        color: Theme.of(context).primaryColor,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8.0),
+                  Expanded(child: _buildEventList()),
+                ],
               ),
-            ),
-          ),
-          const SizedBox(height: 8.0),
-          Expanded(child: _buildEventList()),
-        ],
-      ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         selectedItemColor: primaryColor,
@@ -158,12 +205,29 @@ class _CalendarScreenState extends State<CalendarScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // Add new meal event for selected day
-          _showAddMealDialog();
+          // Navigate to AddMealScreen with selected date
+          _navigateToAddMeal();
         },
         child: Icon(Icons.add),
       ),
     );
+  }
+
+  // Navigate to AddMealScreen with preselected date
+  void _navigateToAddMeal([Map<String, dynamic>? mealToEdit]) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder:
+            (context) => AddMealScreen(
+              mealToEdit: mealToEdit,
+              preselectedDate: _selectedDay,
+            ),
+      ),
+    );
+
+    // If meal was added or updated, no need to explicitly reload
+    // as we're using a stream that will update automatically
   }
 
   Widget _buildEventList() {
@@ -184,7 +248,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
             TextButton.icon(
               icon: Icon(Icons.add),
               label: Text('Add Meal'),
-              onPressed: () => _showAddMealDialog(),
+              onPressed: () => _navigateToAddMeal(),
             ),
           ],
         ),
@@ -201,13 +265,76 @@ class _CalendarScreenState extends State<CalendarScreen> {
             leading: _getMealIcon(event.type),
             title: Text(event.mealName),
             subtitle: Text(event.type),
-            trailing: Text(event.time),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(event.time),
+                SizedBox(width: 8),
+                PopupMenuButton<String>(
+                  onSelected: (value) {
+                    if (value == 'edit') {
+                      _navigateToAddMeal(event.data);
+                    } else if (value == 'delete') {
+                      _showDeleteConfirmation(event.data['id']);
+                    }
+                  },
+                  itemBuilder:
+                      (context) => [
+                        PopupMenuItem(
+                          value: 'edit',
+                          child: ListTile(
+                            leading: Icon(Icons.edit),
+                            title: Text('Edit'),
+                            contentPadding: EdgeInsets.zero,
+                          ),
+                        ),
+                        PopupMenuItem(
+                          value: 'delete',
+                          child: ListTile(
+                            leading: Icon(Icons.delete, color: Colors.red),
+                            title: Text('Delete'),
+                            contentPadding: EdgeInsets.zero,
+                          ),
+                        ),
+                      ],
+                ),
+              ],
+            ),
             onTap: () {
               // Navigate to meal details
+              _navigateToAddMeal(event.data);
             },
           ),
         );
       },
+    );
+  }
+
+  // Show confirmation dialog before deleting a meal
+  void _showDeleteConfirmation(String mealId) {
+    showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: Text('Delete Meal'),
+            content: Text('Are you sure you want to delete this meal?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () {
+                  _firestoreService.deleteMeal(mealId);
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(SnackBar(content: Text('Meal deleted')));
+                },
+                child: Text('Delete', style: TextStyle(color: Colors.red)),
+              ),
+            ],
+          ),
     );
   }
 
@@ -238,54 +365,14 @@ class _CalendarScreenState extends State<CalendarScreen> {
       child: Icon(iconData, color: iconColor),
     );
   }
-
-  void _showAddMealDialog() {
-    // Implement a dialog to add a new meal
-    showDialog(
-      context: context,
-      builder:
-          (context) => AlertDialog(
-            title: Text('Add Meal'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                DropdownButtonFormField<String>(
-                  decoration: InputDecoration(labelText: 'Meal Type'),
-                  items:
-                      ['Breakfast', 'Lunch', 'Dinner', 'Snack']
-                          .map(
-                            (label) => DropdownMenuItem(
-                              value: label,
-                              child: Text(label),
-                            ),
-                          )
-                          .toList(),
-                  onChanged: (value) {},
-                ),
-                TextField(decoration: InputDecoration(labelText: 'Meal Name')),
-                TextField(decoration: InputDecoration(labelText: 'Time')),
-              ],
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text('Cancel'),
-              ),
-              ElevatedButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text('Add'),
-              ),
-            ],
-          ),
-    );
-  }
 }
 
-// Model class for meal events
+// Updated model class for meal events
 class MealEvent {
   final String type;
   final String mealName;
   final String time;
+  final Map<String, dynamic> data; // Store full document data
 
-  MealEvent(this.type, this.mealName, this.time);
+  MealEvent(this.type, this.mealName, this.time, this.data);
 }

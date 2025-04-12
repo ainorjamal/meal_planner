@@ -17,7 +17,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
   List<Recipe> _recipes = [];
   String _selectedCategory = 'All';
   String? userId;
-  int _currentIndex = 2; // Set to 2 for Recipes tab
+  final int _currentIndex = 2; // Set to 2 for Recipes tab
   bool _isDarkMode = false;
   Color primaryColor = Colors.green;
 
@@ -60,10 +60,12 @@ class _RecipesScreenState extends State<RecipesScreen> {
     // Check if dark mode is enabled
     _isDarkMode = Theme.of(context).brightness == Brightness.dark;
     primaryColor = Theme.of(context).primaryColor;
-    
-    final filteredRecipes = _recipes.where((recipe) {
-      return _selectedCategory == 'All' || recipe.category == _selectedCategory;
-    }).toList();
+
+    final filteredRecipes =
+        _recipes.where((recipe) {
+          return _selectedCategory == 'All' ||
+              recipe.category == _selectedCategory;
+        }).toList();
 
     return Scaffold(
       appBar: AppBar(
@@ -76,13 +78,18 @@ class _RecipesScreenState extends State<RecipesScreen> {
                 _selectedCategory = newCategory!;
               });
             },
-            items: ['All', 'Vegan', 'Vegetarian', 'Non-Vegetarian']
-                .map<DropdownMenuItem<String>>((category) {
-              return DropdownMenuItem<String>(
-                value: category,
-                child: Text(category),
-              );
-            }).toList(),
+            items:
+                [
+                  'All',
+                  'Vegan',
+                  'Vegetarian',
+                  'Non-Vegetarian',
+                ].map<DropdownMenuItem<String>>((category) {
+                  return DropdownMenuItem<String>(
+                    value: category,
+                    child: Text(category),
+                  );
+                }).toList(),
           ),
         ],
       ),
@@ -95,22 +102,24 @@ class _RecipesScreenState extends State<RecipesScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => RecipeDetailScreen(
-                      recipe: filteredRecipes[index],
-                      userId: userId!,
-                    ),
+                    builder:
+                        (context) => RecipeDetailScreen(
+                          recipe: filteredRecipes[index],
+                          userId: userId!,
+                        ),
                   ),
                 );
               } else {
                 // Handle the case where the userId is null (e.g., user not logged in)
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                  content: Text('User not logged in'),
-                ));
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(SnackBar(content: Text('User not logged in')));
               }
             },
             child: RecipeCard(
               recipe: filteredRecipes[index],
-              onFavoriteToggle: () => _toggleFavorite(filteredRecipes[index].id),
+              onFavoriteToggle:
+                  () => _toggleFavorite(filteredRecipes[index].id),
             ),
           );
         },

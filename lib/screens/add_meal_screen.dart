@@ -3,8 +3,9 @@ import '../services/firestore.dart'; // Import your FirestoreService
 
 class AddMealScreen extends StatefulWidget {
   final Map<String, dynamic>? mealToEdit;
+  final DateTime? preselectedDate; // New parameter for preselected date
 
-  const AddMealScreen({super.key, this.mealToEdit});
+  const AddMealScreen({super.key, this.mealToEdit, this.preselectedDate});
 
   @override
   // ignore: library_private_types_in_public_api
@@ -24,6 +25,12 @@ class _AddMealScreenState extends State<AddMealScreen> {
   @override
   void initState() {
     super.initState();
+
+    // If there's a preselected date from the calendar, use it
+    if (widget.preselectedDate != null) {
+      _selectedDate = widget.preselectedDate!;
+    }
+
     // Populate the text fields if we are editing a meal
     if (widget.mealToEdit != null) {
       mealNameController.text = widget.mealToEdit!['title'] ?? '';
@@ -282,7 +289,8 @@ class _AddMealScreenState extends State<AddMealScreen> {
                       logged: widget.mealToEdit!['logged'] ?? false,
                     );
                   }
-                  Navigator.pop(context); // Go back to the previous screen
+                  // Return true to indicate a successful save
+                  Navigator.pop(context, true);
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
