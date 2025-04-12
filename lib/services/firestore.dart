@@ -23,10 +23,12 @@ class FirestoreService {
   }
 
   // CREATE
+  // CREATE
   Future<void> addMeal({
     required String title,
     required String description,
     required String time,
+    required DateTime date, // Added date parameter
     String? mealType,
   }) async {
     if (userId == null) throw Exception('User not authenticated');
@@ -34,6 +36,7 @@ class FirestoreService {
       'title': title,
       'description': description,
       'time': time,
+      'date': date, // Store the date in Firestore
       'mealType': mealType ?? '',
       'userId': userId,
       'logged': false,
@@ -47,6 +50,7 @@ class FirestoreService {
     required String title,
     required String description,
     required String time,
+    required DateTime date, // Added date parameter
     required bool logged,
     String? mealType,
     int? satisfaction,
@@ -58,9 +62,12 @@ class FirestoreService {
       'title': title,
       'description': description,
       'time': time,
+      'date': date, // Include date in the update
       'logged': logged,
       'userId': userId,
     };
+
+    // Include optional fields if they're provided
 
     await meals.doc(mealId).update(data);
   }

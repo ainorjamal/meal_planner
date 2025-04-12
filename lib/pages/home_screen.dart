@@ -73,6 +73,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   autofocus: true,
                 )
                 : Text('Meal Planner'),
+
         actions: [
           // Search icon
           IconButton(
@@ -89,6 +90,7 @@ class _HomeScreenState extends State<HomeScreen> {
             },
           ),
         ],
+        automaticallyImplyLeading: false,
       ),
       body: _getBody(),
       bottomNavigationBar: BottomNavigationBar(
@@ -241,6 +243,20 @@ class _HomeScreenState extends State<HomeScreen> {
             final mealType = mealData['mealType'] ?? '';
             final isLogged = mealData['logged'] ?? false;
 
+            // Handle date, which might be a Timestamp or null
+            DateTime? date;
+            if (mealData['date'] != null) {
+              if (mealData['date'] is Timestamp) {
+                date = (mealData['date'] as Timestamp).toDate();
+              }
+            }
+
+            // Format date for display
+            final String dateStr =
+                date != null
+                    ? '${date.month}/${date.day}/${date.year}'
+                    : 'No date';
+
             // Get meal type icon
             IconData mealTypeIcon = _getMealTypeIcon(mealType);
 
@@ -287,12 +303,15 @@ class _HomeScreenState extends State<HomeScreen> {
                       action: SnackBarAction(
                         label: 'Undo',
                         onPressed: () async {
-                          // Attempt to re-add the deleted meal
+                          // Attempt to re-add the deleted meal with date
                           await _firestoreService.addMeal(
                             title: mealData['title'] ?? '',
                             description: mealData['description'] ?? '',
                             time: mealData['time'] ?? '',
                             mealType: mealData['mealType'],
+                            date:
+                                date ??
+                                DateTime.now(), // Use the saved date or default to now
                           );
                         },
                       ),
@@ -317,6 +336,17 @@ class _HomeScreenState extends State<HomeScreen> {
                     SizedBox(height: 4),
                     Row(
                       children: [
+                        Icon(
+                          Icons.calendar_today,
+                          size: 16,
+                          color: Colors.grey,
+                        ),
+                        SizedBox(width: 4),
+                        Text(
+                          dateStr,
+                          style: TextStyle(fontSize: 13, color: Colors.grey),
+                        ),
+                        SizedBox(width: 16),
                         Icon(Icons.access_time, size: 16, color: Colors.grey),
                         SizedBox(width: 4),
                         Text(
@@ -357,8 +387,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   });
                 },
 
-                // Modify the trailing property in your ListTile within the _buildMealList() method
-                // Replace the existing trailing: IconButton(...) with this:
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -374,6 +402,8 @@ class _HomeScreenState extends State<HomeScreen> {
                           'time': time,
                           'mealType': mealType,
                           'logged': isLogged,
+                          'date':
+                              mealData['date'], // Pass the date to the edit screen
                         };
 
                         Navigator.push(
@@ -433,13 +463,16 @@ class _HomeScreenState extends State<HomeScreen> {
                                 action: SnackBarAction(
                                   label: 'Undo',
                                   onPressed: () async {
-                                    // Attempt to re-add the deleted meal
+                                    // Attempt to re-add the deleted meal with date
                                     await _firestoreService.addMeal(
                                       title: mealData['title'] ?? '',
                                       description:
                                           mealData['description'] ?? '',
                                       time: mealData['time'] ?? '',
                                       mealType: mealData['mealType'],
+                                      date:
+                                          date ??
+                                          DateTime.now(), // Use the saved date or default to now
                                     );
                                   },
                                 ),
@@ -564,6 +597,20 @@ class _HomeScreenState extends State<HomeScreen> {
             final mealType = mealData['mealType'] ?? '';
             final isLogged = mealData['logged'] ?? false;
 
+            // Handle date, which might be a Timestamp or null
+            DateTime? date;
+            if (mealData['date'] != null) {
+              if (mealData['date'] is Timestamp) {
+                date = (mealData['date'] as Timestamp).toDate();
+              }
+            }
+
+            // Format date for display
+            final String dateStr =
+                date != null
+                    ? '${date.month}/${date.day}/${date.year}'
+                    : 'No date';
+
             // Get meal type icon
             IconData mealTypeIcon = _getMealTypeIcon(mealType);
 
@@ -580,6 +627,13 @@ class _HomeScreenState extends State<HomeScreen> {
                   SizedBox(height: 4),
                   Row(
                     children: [
+                      Icon(Icons.calendar_today, size: 16, color: Colors.grey),
+                      SizedBox(width: 4),
+                      Text(
+                        dateStr,
+                        style: TextStyle(fontSize: 13, color: Colors.grey),
+                      ),
+                      SizedBox(width: 16),
                       Icon(Icons.access_time, size: 16, color: Colors.grey),
                       SizedBox(width: 4),
                       Text(
@@ -625,8 +679,4 @@ class _HomeScreenState extends State<HomeScreen> {
       },
     );
   }
-
-  // Profile tab content
-
-  // Add this method to show the edit profile dialog
 }

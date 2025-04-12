@@ -33,3 +33,5 @@ flutter_launcher_icons:
 
 flutter:
   uses-material-design: true
+  assets:
+    - "assets/images/Meal Planner (4).png"
