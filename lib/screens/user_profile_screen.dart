@@ -5,6 +5,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:meal_planner/pages/home_screen.dart';
 import '../auth/auth_service.dart';
 import '../screens/calendar_screen.dart';
 import '../screens/recipes_screen.dart';
@@ -38,7 +39,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         onTap: (index) {
           if (index == 0) {
             // Home tab
-            Navigator.pop(context);
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => HomeScreen()),
+            );
           } else if (index == 1) {
             // Calendar tab
             Navigator.push(
@@ -111,10 +115,11 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
     // Return the profile UI with Firestore data
     return StreamBuilder<DocumentSnapshot>(
-      stream: FirebaseFirestore.instance
-          .collection('users')
-          .doc(userId)
-          .snapshots(),
+      stream:
+          FirebaseFirestore.instance
+              .collection('users')
+              .doc(userId)
+              .snapshots(),
       builder: (context, snapshot) {
         // Loading state
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -147,19 +152,20 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               // Profile picture
               photoUrl.isNotEmpty
                   ? CircleAvatar(
-                      radius: 50,
-                      backgroundImage: NetworkImage(photoUrl),
-                    )
+                    radius: 50,
+                    backgroundImage: NetworkImage(photoUrl),
+                  )
                   : CircleAvatar(
-                      radius: 50,
-                      backgroundColor:
-                          Theme.of(context).primaryColor.withOpacity(0.2),
-                      child: Icon(
-                        Icons.person,
-                        size: 50,
-                        color: Theme.of(context).primaryColor,
-                      ),
+                    radius: 50,
+                    backgroundColor: Theme.of(
+                      context,
+                    ).primaryColor.withOpacity(0.2),
+                    child: Icon(
+                      Icons.person,
+                      size: 50,
+                      color: Theme.of(context).primaryColor,
                     ),
+                  ),
               SizedBox(height: 16),
 
               // User name
@@ -223,25 +229,29 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 leading: Icon(Icons.logout, color: Colors.red),
                 title: Text('Logout', style: TextStyle(color: Colors.red)),
                 onTap: () async {
-                  bool confirm = await showDialog(
+                  bool confirm =
+                      await showDialog(
                         context: context,
-                        builder: (context) => AlertDialog(
-                          title: Text('Logout'),
-                          content: Text('Are you sure you want to logout?'),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.of(context).pop(false),
-                              child: Text('Cancel'),
+                        builder:
+                            (context) => AlertDialog(
+                              title: Text('Logout'),
+                              content: Text('Are you sure you want to logout?'),
+                              actions: [
+                                TextButton(
+                                  onPressed:
+                                      () => Navigator.of(context).pop(false),
+                                  child: Text('Cancel'),
+                                ),
+                                TextButton(
+                                  onPressed:
+                                      () => Navigator.of(context).pop(true),
+                                  child: Text('Logout'),
+                                  style: TextButton.styleFrom(
+                                    foregroundColor: Colors.red,
+                                  ),
+                                ),
+                              ],
                             ),
-                            TextButton(
-                              onPressed: () => Navigator.of(context).pop(true),
-                              child: Text('Logout'),
-                              style: TextButton.styleFrom(
-                                foregroundColor: Colors.red,
-                              ),
-                            ),
-                          ],
-                        ),
                       ) ??
                       false;
 
@@ -250,28 +260,39 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     await authService.value.signOut();
 
                     // Redirect to login screen
-                    Navigator.pushReplacementNamed(context, '/login'); // Make sure to set up your route for login
+                    Navigator.pushReplacementNamed(
+                      context,
+                      '/login',
+                    ); // Make sure to set up your route for login
                   }
                 },
               ),
 
               ListTile(
                 leading: Icon(Icons.delete_forever, color: Colors.red),
-                title: Text('Delete Account', style: TextStyle(color: Colors.red)),
+                title: Text(
+                  'Delete Account',
+                  style: TextStyle(color: Colors.red),
+                ),
                 onTap: () async {
-                  bool confirmDelete = await showDialog(
+                  bool confirmDelete =
+                      await showDialog(
                         context: context,
-                        builder: (context) => AlertDialog(
+                        builder:
+                            (context) => AlertDialog(
                               title: Text('Delete Account'),
                               content: Text(
-                                  'Are you sure you want to delete your account? This action cannot be undone.'),
+                                'Are you sure you want to delete your account? This action cannot be undone.',
+                              ),
                               actions: [
                                 TextButton(
-                                  onPressed: () => Navigator.of(context).pop(false),
+                                  onPressed:
+                                      () => Navigator.of(context).pop(false),
                                   child: Text('Cancel'),
                                 ),
                                 TextButton(
-                                  onPressed: () => Navigator.of(context).pop(true),
+                                  onPressed:
+                                      () => Navigator.of(context).pop(true),
                                   child: Text('Delete'),
                                   style: TextButton.styleFrom(
                                     foregroundColor: Colors.red,
@@ -297,7 +318,11 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
                         // Navigate to login screen
                         if (mounted) {
-                          Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+                          Navigator.pushNamedAndRemoveUntil(
+                            context,
+                            '/login',
+                            (route) => false,
+                          );
                         }
                       } catch (e) {
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -377,121 +402,131 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
   // Method to show the edit profile dialog
   void _showEditProfileDialog(BuildContext context, String currentName) {
-    final TextEditingController nameController =
-        TextEditingController(text: currentName);
+    final TextEditingController nameController = TextEditingController(
+      text: currentName,
+    );
     final TextEditingController passwordController = TextEditingController();
     final TextEditingController confirmPasswordController =
         TextEditingController();
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Edit Profile'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Display name field
-              TextField(
-                controller: nameController,
-                decoration: InputDecoration(
-                  labelText: 'Display Name',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              SizedBox(height: 16),
+      builder:
+          (context) => AlertDialog(
+            title: Text('Edit Profile'),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Display name field
+                  TextField(
+                    controller: nameController,
+                    decoration: InputDecoration(
+                      labelText: 'Display Name',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  SizedBox(height: 16),
 
-              // New password field
-              TextField(
-                controller: passwordController,
-                obscureText: true,
-                decoration: InputDecoration(
-                  labelText: 'New Password',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              SizedBox(height: 16),
+                  // New password field
+                  TextField(
+                    controller: passwordController,
+                    obscureText: true,
+                    decoration: InputDecoration(
+                      labelText: 'New Password',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  SizedBox(height: 16),
 
-              // Confirm new password field
-              TextField(
-                controller: confirmPasswordController,
-                obscureText: true,
-                decoration: InputDecoration(
-                  labelText: 'Confirm New Password',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              SizedBox(height: 16),
+                  // Confirm new password field
+                  TextField(
+                    controller: confirmPasswordController,
+                    obscureText: true,
+                    decoration: InputDecoration(
+                      labelText: 'Confirm New Password',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  SizedBox(height: 16),
 
-              // Password requirements info (optional, can be styled further)
-              Text(
-                'Password must be at least 8 characters long, and contain a number and a letter.',
-                style: TextStyle(color: Colors.grey, fontSize: 12),
+                  // Password requirements info (optional, can be styled further)
+                  Text(
+                    'Password must be at least 8 characters long, and contain a number and a letter.',
+                    style: TextStyle(color: Colors.grey, fontSize: 12),
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () async {
+                  // Get the current user ID
+                  final User? user = authService.value.currentUser;
+                  if (user != null) {
+                    String displayName = nameController.text.trim();
+                    String newPassword = passwordController.text.trim();
+                    String confirmPassword =
+                        confirmPasswordController.text.trim();
+
+                    // Validate display name and password
+                    if (displayName.isNotEmpty) {
+                      try {
+                        // Update display name in Firestore
+                        await FirebaseFirestore.instance
+                            .collection('users')
+                            .doc(user.uid)
+                            .set({
+                              'displayName': displayName,
+                              // Keep other fields that might exist in the document
+                            }, SetOptions(merge: true));
+                      } catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Error updating profile: $e')),
+                        );
+                        return;
+                      }
+                    }
+
+                    if (newPassword.isNotEmpty &&
+                        newPassword == confirmPassword) {
+                      try {
+                        // Re-authenticate the user to change password
+                        final AuthCredential credential =
+                            EmailAuthProvider.credential(
+                              email: user.email!,
+                              password: "CurrentPassword",
+                            ); // Replace with current password
+
+                        await user.reauthenticateWithCredential(credential);
+
+                        // Change password
+                        await user.updatePassword(newPassword);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Password updated successfully!'),
+                          ),
+                        );
+                      } catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Error changing password: $e'),
+                          ),
+                        );
+                      }
+                    }
+
+                    Navigator.of(context).pop();
+                  }
+                },
+                child: Text('Save'),
               ),
             ],
           ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () async {
-              // Get the current user ID
-              final User? user = authService.value.currentUser;
-              if (user != null) {
-                String displayName = nameController.text.trim();
-                String newPassword = passwordController.text.trim();
-                String confirmPassword = confirmPasswordController.text.trim();
-
-                // Validate display name and password
-                if (displayName.isNotEmpty) {
-                  try {
-                    // Update display name in Firestore
-                    await FirebaseFirestore.instance
-                        .collection('users')
-                        .doc(user.uid)
-                        .set({
-                      'displayName': displayName,
-                      // Keep other fields that might exist in the document
-                    }, SetOptions(merge: true));
-                  } catch (e) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Error updating profile: $e')),
-                    );
-                    return;
-                  }
-                }
-
-                if (newPassword.isNotEmpty && newPassword == confirmPassword) {
-                  try {
-                    // Re-authenticate the user to change password
-                    final AuthCredential credential =
-                        EmailAuthProvider.credential(
-                            email: user.email!, password: "CurrentPassword"); // Replace with current password
-
-                    await user.reauthenticateWithCredential(credential);
-
-                    // Change password
-                    await user.updatePassword(newPassword);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Password updated successfully!')),
-                    );
-                  } catch (e) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Error changing password: $e')),
-                    );
-                  }
-                }
-
-                Navigator.of(context).pop();
-              }
-            },
-            child: Text('Save'),
-          ),
-        ],
-      ),
     );
   }
 }

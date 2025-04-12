@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:meal_planner/pages/home_screen.dart';
 import 'dart:convert';
 import '../models/recipe.dart';
 import '../widgets/recipe_card.dart';
@@ -134,7 +135,10 @@ class _RecipesScreenState extends State<RecipesScreen> {
         onTap: (index) {
           if (index == 0) {
             // Home tab
-            Navigator.pop(context);
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => HomeScreen()),
+            );
           } else if (index == 1) {
             // Calendar tab
             Navigator.push(

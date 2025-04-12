@@ -1,6 +1,7 @@
 // ignore_for_file: use_key_in_widget_constructors, library_private_types_in_public_api, deprecated_member_use
 
 import 'package:flutter/material.dart';
+import 'package:meal_planner/pages/home_screen.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../screens/recipes_screen.dart';
@@ -109,13 +110,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
     primaryColor = Theme.of(context).primaryColor;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Meal Calendar'),
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
+      appBar: AppBar(title: Text('Meal Calendar')),
       body:
           _isLoading
               ? Center(child: CircularProgressIndicator())
@@ -167,7 +162,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
         onTap: (index) {
           if (index == 0) {
             // Home tab
-            Navigator.pop(context);
+
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => HomeScreen()),
+            );
           } else if (index == 1) {
             // Current Calendar tab - do nothing
           } else if (index == 2) {
