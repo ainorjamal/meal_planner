@@ -1,14 +1,26 @@
 import 'package:flutter/material.dart';
-import '../services/firestore.dart'; // Import your FirestoreService
+import '../services/firestore.dart';
+
+// Custom color palette
+class AppColors {
+  static const Color primary = Color(0xFF6750A4);
+  static const Color secondary = Color(0xFF9A82DB);
+  static const Color lightPurple = Color(0xFFE6DFFF);
+  static const Color darkPurple = Color(0xFF4A3880);
+  static const Color background = Color(0xFFF8F5FF);
+  static const Color darkBackground = Color(0xFF2D2D3A);
+  static const Color textDark = Color(0xFF1D1B20);
+  static const Color textLight = Color(0xFFF4EFF4);
+  static const Color errorRed = Color(0xFFB3261E);
+}
 
 class AddMealScreen extends StatefulWidget {
   final Map<String, dynamic>? mealToEdit;
-  final DateTime? preselectedDate; // New parameter for preselected date
+  final DateTime? preselectedDate;
 
   const AddMealScreen({super.key, this.mealToEdit, this.preselectedDate});
 
   @override
-  // ignore: library_private_types_in_public_api
   _AddMealScreenState createState() => _AddMealScreenState();
 }
 
@@ -26,29 +38,23 @@ class _AddMealScreenState extends State<AddMealScreen> {
   void initState() {
     super.initState();
 
-    // If there's a preselected date from the calendar, use it
     if (widget.preselectedDate != null) {
       _selectedDate = widget.preselectedDate!;
     }
 
-    // Populate the text fields if we are editing a meal
     if (widget.mealToEdit != null) {
       mealNameController.text = widget.mealToEdit!['title'] ?? '';
       ingredientsController.text = widget.mealToEdit!['description'] ?? '';
       timeController.text = widget.mealToEdit!['time'] ?? '';
       _selectedMealType = widget.mealToEdit!['mealType'];
 
-      // Parse the date if it exists
       if (widget.mealToEdit!['date'] != null) {
-        // The date is stored as a Timestamp in Firestore
         _selectedDate = widget.mealToEdit!['date'].toDate();
       }
 
-      // Parse the time string if it exists
       if (widget.mealToEdit!['time'] != null &&
           widget.mealToEdit!['time'].isNotEmpty) {
         try {
-          // Try to parse time in format like "8:00 AM"
           final timeParts = widget.mealToEdit!['time'].split(' ');
           if (timeParts.length == 2) {
             final hourMinute = timeParts[0].split(':');
@@ -56,7 +62,6 @@ class _AddMealScreenState extends State<AddMealScreen> {
             final int minute = int.parse(hourMinute[1]);
             final String amPm = timeParts[1].toUpperCase();
 
-            // Convert to 24-hour format if PM
             if (amPm == 'PM' && hour < 12) {
               hour += 12;
             } else if (amPm == 'AM' && hour == 12) {
@@ -66,21 +71,16 @@ class _AddMealScreenState extends State<AddMealScreen> {
             _selectedTime = TimeOfDay(hour: hour, minute: minute);
           }
         } catch (e) {
-          // If parsing fails, default to current time
           _selectedTime = TimeOfDay.now();
         }
       }
     }
 
-    // If no time was loaded or parsing failed, use current time
     _selectedTime ??= TimeOfDay.now();
-
-    // Update the text controllers
     _updateTimeController();
     _updateDateController();
   }
 
-  // Format time to display in the text field
   void _updateTimeController() {
     if (_selectedTime != null) {
       final String period = _selectedTime!.period == DayPeriod.am ? 'AM' : 'PM';
@@ -91,7 +91,6 @@ class _AddMealScreenState extends State<AddMealScreen> {
     }
   }
 
-  // Format date to display in the text field
   void _updateDateController() {
     final day = _selectedDate.day.toString().padLeft(2, '0');
     final month = _selectedDate.month.toString().padLeft(2, '0');
@@ -99,7 +98,6 @@ class _AddMealScreenState extends State<AddMealScreen> {
     dateController.text = '$month/$day/$year';
   }
 
-  // Show time picker dialog
   Future<void> _selectTime(BuildContext context) async {
     final TimeOfDay? pickedTime = await showTimePicker(
       context: context,
@@ -108,12 +106,16 @@ class _AddMealScreenState extends State<AddMealScreen> {
         return Theme(
           data: Theme.of(context).copyWith(
             timePickerTheme: TimePickerThemeData(
-              dayPeriodTextColor: Theme.of(context).primaryColor,
+              dayPeriodTextColor: AppColors.primary,
+              hourMinuteTextColor: AppColors.primary,
+              dialHandColor: AppColors.primary,
+              dialBackgroundColor: AppColors.lightPurple,
             ),
             colorScheme: ColorScheme.light(
-              primary: Theme.of(context).primaryColor,
-              onSurface:
-                  Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black,
+              primary: AppColors.primary,
+              onSurface: Theme.of(context).brightness == Brightness.dark
+                  ? AppColors.textLight
+                  : AppColors.textDark,
             ),
           ),
           child: child!,
@@ -129,7 +131,6 @@ class _AddMealScreenState extends State<AddMealScreen> {
     }
   }
 
-  // Show date picker dialog
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? pickedDate = await showDatePicker(
       context: context,
@@ -140,9 +141,14 @@ class _AddMealScreenState extends State<AddMealScreen> {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: ColorScheme.light(
-              primary: Theme.of(context).primaryColor,
-              onSurface:
-                  Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black,
+              primary: AppColors.primary,
+              onPrimary: Colors.white,
+              surface: Theme.of(context).brightness == Brightness.dark
+                  ? AppColors.darkBackground
+                  : Colors.white,
+              onSurface: Theme.of(context).brightness == Brightness.dark
+                  ? AppColors.textLight
+                  : AppColors.textDark,
             ),
           ),
           child: child!,
@@ -161,160 +167,329 @@ class _AddMealScreenState extends State<AddMealScreen> {
   @override
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final backgroundColor = isDarkMode ? AppColors.darkBackground : AppColors.background;
+    final cardColor = isDarkMode ? Color(0xFF3D3A4A) : Colors.white;
+    final textColor = isDarkMode ? AppColors.textLight : AppColors.textDark;
 
     return Scaffold(
+      backgroundColor: backgroundColor,
       appBar: AppBar(
-        title: Text(widget.mealToEdit == null ? 'Add Meal' : 'Edit Meal'),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            TextField(
-              controller: mealNameController,
-              decoration: InputDecoration(
-                labelText: 'Meal Name',
-                border: OutlineInputBorder(),
-                filled: true,
-                fillColor: isDarkMode ? Colors.grey[800] : Colors.grey[100],
-              ),
-            ),
-            SizedBox(height: 16),
-            TextField(
-              controller: ingredientsController,
-              decoration: InputDecoration(
-                labelText: 'Ingredients',
-                border: OutlineInputBorder(),
-                filled: true,
-                fillColor: isDarkMode ? Colors.grey[800] : Colors.grey[100],
-              ),
-              maxLines: 3, // Allow multiple lines for ingredients
-            ),
-            SizedBox(height: 16),
-            // Date field with picker
-            GestureDetector(
-              onTap: () => _selectDate(context),
-              child: AbsorbPointer(
-                child: TextField(
-                  controller: dateController,
-                  decoration: InputDecoration(
-                    labelText: 'Date',
-                    border: OutlineInputBorder(),
-                    filled: true,
-                    fillColor: isDarkMode ? Colors.grey[800] : Colors.grey[100],
-                    suffixIcon: Icon(Icons.calendar_today),
-                  ),
-                ),
-              ),
-            ),
-            SizedBox(height: 16),
-            // Time field with picker
-            GestureDetector(
-              onTap: () => _selectTime(context),
-              child: AbsorbPointer(
-                child: TextField(
-                  controller: timeController,
-                  decoration: InputDecoration(
-                    labelText: 'Time',
-                    border: OutlineInputBorder(),
-                    filled: true,
-                    fillColor: isDarkMode ? Colors.grey[800] : Colors.grey[100],
-                    suffixIcon: Icon(Icons.access_time),
-                  ),
-                ),
-              ),
-            ),
-            SizedBox(height: 16),
-            DropdownButtonFormField<String>(
-              decoration: InputDecoration(
-                labelText: 'Meal Type',
-                border: OutlineInputBorder(),
-                filled: true,
-                fillColor: isDarkMode ? Colors.grey[800] : Colors.grey[100],
-              ),
-              value: _selectedMealType,
-              items:
-                  <String>['Breakfast', 'Lunch', 'Dinner', 'Snack'].map((
-                    String value,
-                  ) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value),
-                    );
-                  }).toList(),
-              onChanged: (String? newValue) {
-                setState(() {
-                  _selectedMealType = newValue;
-                });
-              },
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please select a meal type';
-                }
-                return null;
-              },
-            ),
-            SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: () async {
-                String title = mealNameController.text.trim();
-                String description = ingredientsController.text.trim();
-                String time = timeController.text.trim();
-                String? mealType = _selectedMealType;
-
-                if (title.isNotEmpty &&
-                    description.isNotEmpty &&
-                    time.isNotEmpty &&
-                    mealType != null &&
-                    mealType.isNotEmpty) {
-                  if (widget.mealToEdit == null) {
-                    // Add new meal
-                    await _firestoreService.addMeal(
-                      title: title,
-                      description: description,
-                      time: time,
-                      date: _selectedDate, // Pass the selected date
-                      mealType: mealType,
-                    );
-                  } else {
-                    // Update existing meal
-                    await _firestoreService.updateMeal(
-                      mealId: widget.mealToEdit!['id'],
-                      title: title,
-                      description: description,
-                      time: time,
-                      date: _selectedDate, // Pass the selected date
-                      mealType: mealType,
-                      logged: widget.mealToEdit!['logged'] ?? false,
-                    );
-                  }
-                  // Return true to indicate a successful save
-                  Navigator.pop(context, true);
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        'Meal Name, Ingredients, Time, and Meal Type cannot be empty',
-                      ),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                padding: EdgeInsets.symmetric(vertical: 15),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              child: Text(
-                widget.mealToEdit == null ? 'Add Meal' : 'Save Changes',
-                style: TextStyle(fontSize: 16),
-              ),
-            ),
-          ],
+        title: Text(
+          widget.mealToEdit == null ? 'Add Meal' : 'Edit Meal',
+          style: TextStyle(
+            color: isDarkMode ? AppColors.textLight : Colors.white,
+            fontWeight: FontWeight.w600,
+          ),
         ),
+        backgroundColor: AppColors.primary,
+        elevation: 0,
+        centerTitle: true,
+      ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: isDarkMode
+                ? [AppColors.darkPurple.withOpacity(0.3), AppColors.darkBackground]
+                : [AppColors.primary.withOpacity(0.05), AppColors.background],
+          ),
+        ),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Card(
+                elevation: 0,
+                color: cardColor,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Meal Details',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: textColor,
+                        ),
+                      ),
+                      SizedBox(height: 16),
+                      _buildTextField(
+                        controller: mealNameController,
+                        label: 'Meal Name',
+                        icon: Icons.restaurant_menu,
+                        isDarkMode: isDarkMode,
+                      ),
+                      SizedBox(height: 16),
+                      _buildTextField(
+                        controller: ingredientsController,
+                        label: 'Ingredients',
+                        icon: Icons.inventory_2,
+                        isDarkMode: isDarkMode,
+                        maxLines: 3,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              SizedBox(height: 16),
+              Card(
+                elevation: 0,
+                color: cardColor,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Time & Date',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: textColor,
+                        ),
+                      ),
+                      SizedBox(height: 16),
+                      GestureDetector(
+                        onTap: () => _selectDate(context),
+                        child: AbsorbPointer(
+                          child: _buildTextField(
+                            controller: dateController,
+                            label: 'Date',
+                            icon: Icons.calendar_today,
+                            isDarkMode: isDarkMode,
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 16),
+                      GestureDetector(
+                        onTap: () => _selectTime(context),
+                        child: AbsorbPointer(
+                          child: _buildTextField(
+                            controller: timeController,
+                            label: 'Time',
+                            icon: Icons.access_time,
+                            isDarkMode: isDarkMode,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              SizedBox(height: 16),
+              Card(
+                elevation: 0,
+                color: cardColor,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Meal Type',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: textColor,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      SizedBox(height: 16),
+                      _buildDropdown(isDarkMode),
+                    ],
+                  ),
+                ),
+              ),
+              SizedBox(height: 32),
+              _buildSaveButton(isDarkMode),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+    required bool isDarkMode,
+    int maxLines = 1,
+  }) {
+    return TextField(
+      controller: controller,
+      maxLines: maxLines,
+      style: TextStyle(
+        color: isDarkMode ? AppColors.textLight : AppColors.textDark,
+      ),
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: TextStyle(
+          color: isDarkMode ? AppColors.lightPurple : AppColors.primary.withOpacity(0.8),
+        ),
+        prefixIcon: Icon(
+          icon,
+          color: isDarkMode ? AppColors.lightPurple : AppColors.primary,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(
+            color: isDarkMode ? AppColors.lightPurple.withOpacity(0.4) : AppColors.primary.withOpacity(0.4),
+          ),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(
+            color: AppColors.primary,
+            width: 2,
+          ),
+        ),
+        filled: true,
+        fillColor: isDarkMode ? Colors.grey[800]!.withOpacity(0.5) : Colors.grey[100]!.withOpacity(0.7),
+        contentPadding: EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: maxLines > 1 ? 16 : 0,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDropdown(bool isDarkMode) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isDarkMode ? AppColors.lightPurple.withOpacity(0.4) : AppColors.primary.withOpacity(0.4),
+        ),
+        color: isDarkMode ? Colors.grey[800]!.withOpacity(0.5) : Colors.grey[100]!.withOpacity(0.7),
+      ),
+      child: DropdownButtonFormField<String>(
+        decoration: InputDecoration(
+          prefixIcon: Icon(
+            Icons.category,
+            color: isDarkMode ? AppColors.lightPurple : AppColors.primary,
+          ),
+          border: InputBorder.none,
+          contentPadding: EdgeInsets.symmetric(horizontal: 16),
+        ),
+        dropdownColor: isDarkMode ? Colors.grey[800] : Colors.white,
+        icon: Icon(
+          Icons.arrow_drop_down,
+          color: isDarkMode ? AppColors.lightPurple : AppColors.primary,
+        ),
+        style: TextStyle(
+          color: isDarkMode ? AppColors.textLight : AppColors.textDark,
+          fontSize: 16,
+        ),
+        value: _selectedMealType,
+        hint: Center(
+          child: Text (
+            'Select meal type',
+            style: TextStyle(
+              color: isDarkMode ? AppColors.lightPurple.withOpacity(0.8) : AppColors.primary.withOpacity(0.8),
+           ),
+           textAlign: TextAlign.center,
+          ),
+        ),
+        items: <String>['Breakfast', 'Lunch', 'Dinner', 'Snack'].map((String value) {
+          return DropdownMenuItem<String>(
+            value: value,
+            child: Text(value),
+          );
+        }).toList(),
+        onChanged: (String? newValue) {
+          setState(() {
+            _selectedMealType = newValue;
+          });
+        },
+      ),
+    );
+  }
+
+  Widget _buildSaveButton(bool isDarkMode) {
+    return ElevatedButton(
+      onPressed: () async {
+        String title = mealNameController.text.trim();
+        String description = ingredientsController.text.trim();
+        String time = timeController.text.trim();
+        String? mealType = _selectedMealType;
+
+        if (title.isNotEmpty &&
+            description.isNotEmpty &&
+            time.isNotEmpty &&
+            mealType != null &&
+            mealType.isNotEmpty) {
+          if (widget.mealToEdit == null) {
+            await _firestoreService.addMeal(
+              title: title,
+              description: description,
+              time: time,
+              date: _selectedDate,
+              mealType: mealType,
+            );
+          } else {
+            await _firestoreService.updateMeal(
+              mealId: widget.mealToEdit!['id'],
+              title: title,
+              description: description,
+              time: time,
+              date: _selectedDate,
+              mealType: mealType,
+              logged: widget.mealToEdit!['logged'] ?? false,
+            );
+          }
+          Navigator.pop(context, true);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Please fill all required fields',
+                style: TextStyle(color: Colors.white),
+              ),
+              backgroundColor: AppColors.errorRed,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+          );
+        }
+      },
+      style: ElevatedButton.styleFrom(
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
+        padding: EdgeInsets.symmetric(vertical: 16),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        elevation: 2,
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(widget.mealToEdit == null ? Icons.add_circle : Icons.save),
+          SizedBox(width: 8),
+          Text(
+            widget.mealToEdit == null ? 'Add Meal' : 'Save Changes',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
       ),
     );
   }

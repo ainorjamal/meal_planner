@@ -117,36 +117,65 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
 
   // Function to add the recipe to Firestore favorites
   void _addToFavorites(BuildContext context) {
-    FirebaseFirestore.instance.collection('favorites').add({
-      'user_id': widget.userId,
-      'recipe_id': widget.recipe.id,
-      'recipe_name': widget.recipe.name,
-      'image_url': widget.recipe.imageUrl,
-      'timestamp': FieldValue.serverTimestamp(),
-    }).then((_) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Added to Favorites'),
-          backgroundColor: AppColors.primaryPurple,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
+  FirebaseFirestore.instance.collection('favorites').add({
+    'user_id': widget.userId,
+    'recipe_id': widget.recipe.id,
+    'recipe_name': widget.recipe.name,
+    'image_url': widget.recipe.imageUrl,
+    'timestamp': FieldValue.serverTimestamp(),
+  }).then((_) {
+    // Clearer success feedback
+    final snackBar = SnackBar(
+      content: Row(
+        children: [
+          Icon(Icons.check_circle, color: Colors.white),
+          SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: const [
+                Text(
+                  'Success!',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                Text(
+                  'Added to Favorites',
+                  style: TextStyle(
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
           ),
+        ],
+      ),
+      backgroundColor: const Color.fromARGB(255, 51, 38, 88),
+      behavior: SnackBarBehavior.floating,
+      shape: RoundedRectangleBorder( 
+        borderRadius: BorderRadius.circular(10),
+      ),
+      duration: Duration(seconds: 3),
+    );
+
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+  }).catchError((error) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Failed to add to Favorites'),
+        backgroundColor: Colors.red,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
         ),
-      );
-    }).catchError((error) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to add to Favorites'),
-          backgroundColor: Colors.red,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
-      );
-    });
-  }
+      ),
+    );
+  });
+}
+
 
   // Function to show the dialog for adding the meal schedule
   void _showAddToMealDialog(BuildContext context) {
