@@ -39,6 +39,81 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
   String selectedMealType = 'Lunch'; // Default value
   final List<String> mealTypes = ['Breakfast', 'Lunch', 'Dinner', 'Snack'];
 
+  // Function to show success notification
+  void _showSuccessNotification(BuildContext context) {
+    // Create an overlay entry
+    OverlayState? overlayState = Overlay.of(context);
+    late OverlayEntry overlayEntry;
+    
+    overlayEntry = OverlayEntry(
+      builder: (context) => Positioned(
+        top: MediaQuery.of(context).viewPadding.top + 20,
+        left: 20,
+        right: 20,
+        child: Material(
+          elevation: 8,
+          borderRadius: BorderRadius.circular(12),
+          color: Colors.green,
+          child: Container(
+            padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.check_circle,
+                  color: Colors.white,
+                  size: 28,
+                ),
+                SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Success!',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      SizedBox(height: 4),
+                      Text(
+                        'Added to Meal Plan',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  icon: Icon(Icons.close, color: Colors.white),
+                  onPressed: () {
+                    overlayEntry.remove();
+                  },
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    
+    // Insert the overlay
+    overlayState.insert(overlayEntry);
+    
+    // Automatically remove after 3 seconds
+    Future.delayed(Duration(seconds: 3), () {
+      if (overlayEntry.mounted) {
+        overlayEntry.remove();
+      }
+    });
+  }
+
   // Function to add the recipe to Firestore favorites
   void _addToFavorites(BuildContext context) {
     FirebaseFirestore.instance.collection('favorites').add({
@@ -362,17 +437,11 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                     'image_url': widget.recipe.imageUrl,
                     'created_at': FieldValue.serverTimestamp(),
                   }).then((_) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Added to Meal Plan'),
-                        backgroundColor: AppColors.primaryPurple,
-                        behavior: SnackBarBehavior.floating,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                    );
+                    // Close the dialog first
                     Navigator.pop(context);
+                    
+                    // Show a more prominent notification at the top
+                    _showSuccessNotification(context);
                   }).catchError((error) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
