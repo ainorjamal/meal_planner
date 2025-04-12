@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/recipe.dart';
 
+
 // Custom color palette - same as in CalendarScreen
 class AppColors {
   static const Color primaryPurple = Color(0xFF6750A4);
@@ -626,10 +627,18 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                       ),
                       SizedBox(height: 8),
                       Text(
-                        widget.recipe.instructions,
+                        widget.recipe.instructions
+                          .trim()
+                          .split('\n')
+                          .map((paragraph) => '\t$paragraph')
+                          .join('\n\n'), // adds space between paragraphs
+                        textAlign: TextAlign.justify,
                         style: TextStyle(
                           fontSize: 16,
                           height: 1.5,
+                          fontFamily: 'Poppins', 
+                          fontWeight: FontWeight.normal,
+                          fontStyle: FontStyle.normal,
                           color: isDarkMode ? Colors.grey[300] : Colors.black87,
                         ),
                       ),
