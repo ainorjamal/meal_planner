@@ -319,15 +319,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // Navigate to AddMealScreen with selected date
-          _navigateToAddMeal();
-        },
-        backgroundColor: AppColors.primaryPurple,
-        child: Icon(Icons.add, color: Colors.white),
-        elevation: 4,
-      ),
     );
   }
 
