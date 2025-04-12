@@ -97,7 +97,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Register for Meal Planner')),
+      appBar: AppBar(
+        title: const Text('Register for Meal Planner'),
+        automaticallyImplyLeading: false,
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -107,7 +110,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Icon(Icons.app_registration, size: 80, color: Theme.of(context).primaryColor),
+                  Icon(
+                    Icons.app_registration,
+                    size: 80,
+                    color: Theme.of(context).primaryColor,
+                  ),
                   const SizedBox(height: 32),
 
                   // Username
@@ -140,7 +147,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       if (value == null || value.isEmpty) {
                         return 'Please enter your email';
                       }
-                      if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+                      if (!RegExp(
+                        r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                      ).hasMatch(value)) {
                         return 'Please enter a valid email address';
                       }
                       return null;
@@ -179,9 +188,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text("• At least 8 characters", style: TextStyle(color: Colors.red)),
-                        Text("• At least 1 uppercase letter", style: TextStyle(color: Colors.red)),
-                        Text("• At least 1 special character", style: TextStyle(color: Colors.red)),
+                        Text(
+                          "• At least 8 characters",
+                          style: TextStyle(color: Colors.red),
+                        ),
+                        Text(
+                          "• At least 1 uppercase letter",
+                          style: TextStyle(color: Colors.red),
+                        ),
+                        Text(
+                          "• At least 1 special character",
+                          style: TextStyle(color: Colors.red),
+                        ),
                       ],
                     ),
                   ),
@@ -244,12 +262,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       padding: const EdgeInsets.symmetric(vertical: 16.0),
                       backgroundColor: Theme.of(context).primaryColor,
                     ),
-                    child: _isLoading
-                        ? const CircularProgressIndicator(color: Colors.white)
-                        : const Text(
-                            'REGISTER',
-                            style: TextStyle(fontSize: 16, color: Colors.white),
-                          ),
+                    child:
+                        _isLoading
+                            ? const CircularProgressIndicator(
+                              color: Colors.white,
+                            )
+                            : const Text(
+                              'REGISTER',
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.white,
+                              ),
+                            ),
                   ),
                   const SizedBox(height: 16),
 

@@ -71,6 +71,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Recipes'),
+        automaticallyImplyLeading: false,
         actions: [
           DropdownButton<String>(
             value: _selectedCategory,

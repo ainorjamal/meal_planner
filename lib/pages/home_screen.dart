@@ -73,6 +73,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   autofocus: true,
                 )
                 : Text('Meal Planner'),
+
         actions: [
           // Search icon
           IconButton(
@@ -89,6 +90,7 @@ class _HomeScreenState extends State<HomeScreen> {
             },
           ),
         ],
+        automaticallyImplyLeading: false,
       ),
       body: _getBody(),
       bottomNavigationBar: BottomNavigationBar(

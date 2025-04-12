@@ -110,7 +110,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
     primaryColor = Theme.of(context).primaryColor;
 
     return Scaffold(
-      appBar: AppBar(title: Text('Meal Calendar')),
+      appBar: AppBar(
+        title: Text('Meal Calendar'),
+        automaticallyImplyLeading: false,
+      ),
       body:
           _isLoading
               ? Center(child: CircularProgressIndicator())

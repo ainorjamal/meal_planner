@@ -27,7 +27,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     primaryColor = Theme.of(context).primaryColor;
 
     return Scaffold(
-      appBar: AppBar(title: Text('My Profile')),
+      appBar: AppBar(
+        title: Text('My Profile'),
+        automaticallyImplyLeading: false,
+      ),
       body: _buildProfileContent(),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
@@ -257,13 +260,27 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
                   if (confirm) {
                     // Sign out the user
-                    await authService.value.signOut();
+                    try {
+                      await authService.value.signOut();
+
+                      Navigator.pushReplacementNamed(context, '/');
+                    } catch (e) {
+                      // Handle any errors during logout
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Error during logout: $e'),
+                          backgroundColor: Colors.red.shade700,
+                          behavior: SnackBarBehavior.floating,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          margin: const EdgeInsets.all(16),
+                        ),
+                      );
+                    }
 
                     // Redirect to login screen
-                    Navigator.pushReplacementNamed(
-                      context,
-                      '/login',
-                    ); // Make sure to set up your route for login
+                    // Make sure to set up your route for login
                   }
                 },
               ),
