@@ -150,6 +150,8 @@ class _AddMealScreenState extends State<AddMealScreen> {
   }
 
   Future<void> _selectDate(BuildContext context) async {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    
     final DateTime? pickedDate = await showDatePicker(
       context: context,
       initialDate: _selectedDate,
@@ -161,12 +163,63 @@ class _AddMealScreenState extends State<AddMealScreen> {
             colorScheme: ColorScheme.light(
               primary: AppColors.primary,
               onPrimary: Colors.white,
-              surface: Theme.of(context).brightness == Brightness.dark
-                  ? AppColors.darkBackground
-                  : Colors.white,
-              onSurface: Theme.of(context).brightness == Brightness.dark
-                  ? AppColors.textLight
-                  : AppColors.textDark,
+              surface: isDarkMode ? AppColors.darkBackground : Colors.white,
+              onSurface: isDarkMode ? AppColors.textLight : AppColors.textDark,
+            ),
+            dialogBackgroundColor: isDarkMode ? AppColors.darkBackground : Colors.white,
+            textButtonTheme: TextButtonThemeData(
+              style: TextButton.styleFrom(
+                foregroundColor: AppColors.primary,
+                textStyle: TextStyle(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            datePickerTheme: DatePickerThemeData(
+              headerBackgroundColor: AppColors.primary,
+              headerForegroundColor: Colors.white,
+              weekdayStyle: TextStyle(
+                color: isDarkMode ? AppColors.lightPurple : AppColors.darkPurple,
+                fontWeight: FontWeight.bold,
+              ),
+              dayStyle: TextStyle(
+                color: isDarkMode ? AppColors.textLight : AppColors.textDark,
+              ),
+              dayBackgroundColor: MaterialStateProperty.resolveWith<Color>((Set<MaterialState> states) {
+                if (states.contains(MaterialState.selected)) {
+                  return AppColors.primary;
+                }
+                return isDarkMode ? Colors.transparent : Colors.transparent;
+              }),
+              todayBackgroundColor: MaterialStateProperty.resolveWith<Color>((Set<MaterialState> states) {
+                return AppColors.secondary.withOpacity(0.3);
+              }),
+              todayForegroundColor: MaterialStateProperty.resolveWith<Color>((Set<MaterialState> states) {
+                return AppColors.darkPurple;
+              }),
+              dayForegroundColor: MaterialStateProperty.resolveWith<Color>((Set<MaterialState> states) {
+                if (states.contains(MaterialState.selected)) {
+                  return Colors.white;
+                }
+                return isDarkMode ? AppColors.textLight : AppColors.textDark;
+              }),
+              surfaceTintColor: Colors.transparent,
+              backgroundColor: isDarkMode ? AppColors.darkBackground : Colors.white,
+              yearBackgroundColor: MaterialStateProperty.resolveWith<Color>((Set<MaterialState> states) {
+                if (states.contains(MaterialState.selected)) {
+                  return AppColors.primary;
+                }
+                return isDarkMode ? Colors.grey[800]! : Colors.grey[100]!;
+              }),
+              yearForegroundColor: MaterialStateProperty.resolveWith<Color>((Set<MaterialState> states) {
+                if (states.contains(MaterialState.selected)) {
+                  return Colors.white;
+                }
+                return isDarkMode ? AppColors.textLight : AppColors.textDark;
+              }),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(24),
+              ),
             ),
           ),
           child: child!,
@@ -277,16 +330,9 @@ class _AddMealScreenState extends State<AddMealScreen> {
                         ),
                       ),
                       SizedBox(height: 16),
-                      GestureDetector(
-                        onTap: () => _selectDate(context),
-                        child: AbsorbPointer(
-                          child: _buildTextField(
-                            controller: dateController,
-                            label: 'Date',
-                            icon: Icons.calendar_today,
-                            isDarkMode: isDarkMode,
-                          ),
-                        ),
+                      _buildDateField(
+                        controller: dateController,
+                        isDarkMode: isDarkMode,
                       ),
                       SizedBox(height: 16),
                       GestureDetector(
@@ -333,6 +379,57 @@ class _AddMealScreenState extends State<AddMealScreen> {
               SizedBox(height: 32),
               _buildSaveButton(isDarkMode),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDateField({
+    required TextEditingController controller,
+    required bool isDarkMode,
+  }) {
+    return InkWell(
+      onTap: () => _selectDate(context),
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: EdgeInsets.symmetric(vertical: 4),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isDarkMode 
+                ? AppColors.lightPurple.withOpacity(0.4) 
+                : AppColors.primary.withOpacity(0.4),
+          ),
+          color: isDarkMode 
+              ? Colors.grey[800]!.withOpacity(0.5) 
+              : Colors.grey[100]!.withOpacity(0.7),
+        ),
+        child: TextField(
+          controller: controller,
+          enabled: false,
+          style: TextStyle(
+            color: isDarkMode ? AppColors.textLight : AppColors.textDark,
+            fontSize: 16,
+          ),
+          decoration: InputDecoration(
+            labelText: 'Date',
+            labelStyle: TextStyle(
+              color: isDarkMode 
+                  ? AppColors.lightPurple 
+                  : AppColors.primary.withOpacity(0.8),
+            ),
+            prefixIcon: Icon(
+              Icons.calendar_today,
+              color: isDarkMode ? AppColors.lightPurple : AppColors.primary,
+            ),
+            suffixIcon: Icon(
+              Icons.arrow_drop_down,
+              color: isDarkMode ? AppColors.lightPurple : AppColors.primary,
+              size: 28,
+            ),
+            border: InputBorder.none,
+            contentPadding: EdgeInsets.symmetric(horizontal: 16),
           ),
         ),
       ),
