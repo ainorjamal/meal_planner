@@ -99,23 +99,41 @@ class _AddMealScreenState extends State<AddMealScreen> {
   }
 
   Future<void> _selectTime(BuildContext context) async {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    
     final TimeOfDay? pickedTime = await showTimePicker(
       context: context,
       initialTime: _selectedTime ?? TimeOfDay.now(),
       builder: (BuildContext context, Widget? child) {
         return Theme(
           data: Theme.of(context).copyWith(
+            // Custom TimePickerTheme with high contrast colors
             timePickerTheme: TimePickerThemeData(
-              dayPeriodTextColor: AppColors.primary,
-              hourMinuteTextColor: AppColors.primary,
+              backgroundColor: Colors.white,
+              hourMinuteColor: AppColors.primary.withOpacity(0.2),
+              hourMinuteTextColor: AppColors.darkPurple,
+              dayPeriodColor: AppColors.lightPurple,
+              dayPeriodTextColor: AppColors.darkPurple,
               dialHandColor: AppColors.primary,
-              dialBackgroundColor: AppColors.lightPurple,
+              dialBackgroundColor: AppColors.lightPurple.withOpacity(0.3),
+              dialTextColor: Colors.black87,
+              entryModeIconColor: AppColors.primary,
+              hourMinuteTextStyle: TextStyle(
+                fontSize: 45,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+            ),
+            textButtonTheme: TextButtonThemeData(
+              style: TextButton.styleFrom(
+                foregroundColor: AppColors.primary,
+              ),
             ),
             colorScheme: ColorScheme.light(
               primary: AppColors.primary,
-              onSurface: Theme.of(context).brightness == Brightness.dark
-                  ? AppColors.textLight
-                  : AppColors.textDark,
+              onPrimary: Colors.white,
+              surface: Colors.white,
+              onSurface: AppColors.textDark,
             ),
           ),
           child: child!,
@@ -305,7 +323,6 @@ class _AddMealScreenState extends State<AddMealScreen> {
                           fontWeight: FontWeight.bold,
                           color: textColor,
                         ),
-                        textAlign: TextAlign.center,
                       ),
                       SizedBox(height: 16),
                       _buildDropdown(isDarkMode),
@@ -378,6 +395,10 @@ class _AddMealScreenState extends State<AddMealScreen> {
       ),
       child: DropdownButtonFormField<String>(
         decoration: InputDecoration(
+          labelText: 'Select meal type',
+          labelStyle: TextStyle(
+            color: isDarkMode ? AppColors.lightPurple : AppColors.primary.withOpacity(0.8),
+          ),
           prefixIcon: Icon(
             Icons.category,
             color: isDarkMode ? AppColors.lightPurple : AppColors.primary,
@@ -395,15 +416,6 @@ class _AddMealScreenState extends State<AddMealScreen> {
           fontSize: 16,
         ),
         value: _selectedMealType,
-        hint: Center(
-          child: Text (
-            'Select meal type',
-            style: TextStyle(
-              color: isDarkMode ? AppColors.lightPurple.withOpacity(0.8) : AppColors.primary.withOpacity(0.8),
-           ),
-           textAlign: TextAlign.center,
-          ),
-        ),
         items: <String>['Breakfast', 'Lunch', 'Dinner', 'Snack'].map((String value) {
           return DropdownMenuItem<String>(
             value: value,
