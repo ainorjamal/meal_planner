@@ -317,7 +317,7 @@ Widget _buildProfileHeader(String userName, String userEmail, String photoUrl) {
         ),
       ],
     ),
-    margin: EdgeInsets.only(bottom: 25),
+    margin: EdgeInsets.only(bottom: 20),
     child: Column(
       children: [
         // Top purple arc background
@@ -411,63 +411,68 @@ Widget _buildProfileHeader(String userName, String userEmail, String photoUrl) {
               ),
               SizedBox(height: 16),
 
-              // User info card
+             // User info card
               Container(
-                padding: EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 10), // tighter all around
                 width: double.infinity,
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    // User name with new styling
+                    // User name
                     Text(
                       userName,
                       style: TextStyle(
-                        fontSize: 26,
-                        fontWeight: FontWeight.bold,
+                        fontSize: 21, // smaller font
+                        fontWeight: FontWeight.w600,
                         color: AppColors.primaryPurple,
-                        letterSpacing: 0.5,
+                        letterSpacing: 0.3,
                       ),
                     ),
-                    SizedBox(height: 6),
+                    SizedBox(height: 2), // super tight spacing
 
-                    // User email with subtle styling
+                    // User email
                     Container(
-                      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
-                        color: AppColors.lightPurple.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(20),
+                        color: const Color.fromARGB(255, 253, 253, 253).withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
                         userEmail,
                         style: TextStyle(
-                          fontSize: 15,
+                          fontSize: 16, // smaller font
                           color: AppColors.secondaryPurple,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
                     ),
-                    SizedBox(height: 20),
+                    SizedBox(height: 8), // very compact
 
-                    // Edit profile button - modernized
-                    Container(
-                      width: 200,
+                    // Edit profile button
+                    SizedBox(
+                      width: 180,
                       child: ElevatedButton.icon(
-                        icon: Icon(Icons.edit_outlined),
-                        label: Text('Edit Profile'),
+                        icon: Icon(Icons.edit_outlined, size: 19), // smaller icon
+                        label: Text(
+                          'Edit Profile',
+                          style: TextStyle(fontSize: 18), // smaller font
+                        ),
                         onPressed: () => _showEditProfileDialog(context, userName),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primaryPurple,
                           foregroundColor: Colors.white,
-                          padding: EdgeInsets.symmetric(vertical: 14),
+                          padding: EdgeInsets.symmetric(vertical: 7), // tighter vertical
                           elevation: 0,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(18),
+                            borderRadius: BorderRadius.circular(12),
                           ),
                         ),
                       ),
                     ),
+                    SizedBox(height: 3), // minimal space at the bottom
                   ],
                 ),
-              ),
+              )
             ],
           ),
         ),
