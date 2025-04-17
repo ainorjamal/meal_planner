@@ -19,15 +19,15 @@ class AppColors {
   static const Color darkGrey = Color(0xFF333333);
   static const Color errorRed = Color(0xFFE53935);
   static const Color successGreen = Color(0xFF43A047);
-  
+
   // Get colors based on brightness mode
-  static Color getCardColor(bool isDarkMode) => 
+  static Color getCardColor(bool isDarkMode) =>
       isDarkMode ? Colors.grey.shade800 : Colors.white;
-  
-  static Color getTextColor(bool isDarkMode) => 
+
+  static Color getTextColor(bool isDarkMode) =>
       isDarkMode ? Colors.white : darkGrey;
-  
-  static Color getSubtitleColor(bool isDarkMode) => 
+
+  static Color getSubtitleColor(bool isDarkMode) =>
       isDarkMode ? Colors.grey.shade400 : Colors.grey.shade600;
 }
 
@@ -43,7 +43,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   @override
   Widget build(BuildContext context) {
     _isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    
+
     return Scaffold(
       backgroundColor: _isDarkMode ? AppColors.darkGrey : AppColors.lightGrey,
       appBar: _buildAppBar(),
@@ -53,7 +53,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   }
 
   // MARK: - UI Building Methods
-  
+
   // App Bar
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
@@ -61,27 +61,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       backgroundColor: AppColors.primaryPurple,
       title: const Text(
         'My Profile',
-        style: TextStyle(
-          fontWeight: FontWeight.bold,
-          color: Colors.white,
-        ),
+        style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
       ),
       centerTitle: true,
       automaticallyImplyLeading: false,
-      actions: [
-        IconButton(
-          icon: Icon(_isDarkMode ? Icons.light_mode : Icons.dark_mode),
-          onPressed: () {
-            // Toggle theme mode (implementation would be in a theme provider)
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Theme toggling would be implemented with a provider'),
-                behavior: SnackBarBehavior.floating,
-              ),
-            );
-          },
-        ),
-      ],
     );
   }
 
@@ -89,17 +72,13 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   Widget _buildBottomNavBar() {
     return Container(
       decoration: BoxDecoration(
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black12,
-            blurRadius: 8,
-          ),
-        ],
+        boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 8)],
       ),
       child: BottomNavigationBar(
         currentIndex: _currentIndex,
         selectedItemColor: AppColors.primaryPurple,
-        unselectedItemColor: _isDarkMode ? Colors.grey.shade400 : Colors.grey.shade600,
+        unselectedItemColor:
+            _isDarkMode ? Colors.grey.shade400 : Colors.grey.shade600,
         backgroundColor: _isDarkMode ? Colors.grey.shade900 : Colors.white,
         type: BottomNavigationBarType.fixed,
         elevation: 8,
@@ -133,7 +112,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   // Handle navigation bar taps
   void _handleNavBarTap(int index) {
     if (index == _currentIndex) return;
-    
+
     Widget destination;
     switch (index) {
       case 0:
@@ -148,7 +127,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       default:
         return; // We're already on the profile tab
     }
-    
+
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (context) => destination),
@@ -170,7 +149,11 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
     // Return the profile UI with Firestore data
     return StreamBuilder<DocumentSnapshot>(
-      stream: FirebaseFirestore.instance.collection('users').doc(userId).snapshots(),
+      stream:
+          FirebaseFirestore.instance
+              .collection('users')
+              .doc(userId)
+              .snapshots(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return _buildLoadingView();
@@ -181,7 +164,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         }
 
         // Get user data from Firestore
-        Map<String, dynamic>? userData = snapshot.data?.data() as Map<String, dynamic>?;
+        Map<String, dynamic>? userData =
+            snapshot.data?.data() as Map<String, dynamic>?;
         String userName = userData?['displayName'] ?? 'User';
         String photoUrl = userData?['photoUrl'] ?? '';
 
@@ -266,7 +250,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             Text(
               'Error loading profile',
               style: TextStyle(
-                fontSize: 18, 
+                fontSize: 18,
                 fontWeight: FontWeight.bold,
                 color: _isDarkMode ? Colors.white : AppColors.darkGrey,
               ),
@@ -299,187 +283,204 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     );
   }
 
-// Redesigned Profile header section
-Widget _buildProfileHeader(String userName, String userEmail, String photoUrl) {
-  return Container(
-    width: double.infinity,
-    decoration: BoxDecoration(
-      color: Colors.white,
-      borderRadius: BorderRadius.only(
-        bottomLeft: Radius.circular(30),
-        bottomRight: Radius.circular(30),
-      ),
-      boxShadow: [
-        BoxShadow(
-          color: Colors.black12,
-          blurRadius: 10,
-          offset: Offset(0, 5),
+  // Redesigned Profile header section
+  Widget _buildProfileHeader(
+    String userName,
+    String userEmail,
+    String photoUrl,
+  ) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(30),
+          bottomRight: Radius.circular(30),
         ),
-      ],
-    ),
-    margin: EdgeInsets.only(bottom: 20),
-    child: Column(
-      children: [
-        // Top purple arc background
-        Container(
-          height: 120,
-          width: double.infinity,
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                AppColors.primaryPurple,
-                AppColors.secondaryPurple,
-              ],
-            ),
-            borderRadius: BorderRadius.only(
-              bottomLeft: Radius.circular(80),
-              bottomRight: Radius.circular(80),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black12,
+            blurRadius: 10,
+            offset: Offset(0, 5),
+          ),
+        ],
+      ),
+      margin: EdgeInsets.only(bottom: 20),
+      child: Column(
+        children: [
+          // Top purple arc background
+          Container(
+            height: 120,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [AppColors.primaryPurple, AppColors.secondaryPurple],
+              ),
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(80),
+                bottomRight: Radius.circular(80),
+              ),
             ),
           ),
-        ),
-        
-        // Profile content with overlapping avatar
-        Container(
-          transform: Matrix4.translationValues(0, -60, 0),
-          child: Column(
-            children: [
-              // Profile picture with elevated card effect
-              Container(
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white,
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.primaryPurple.withOpacity(0.3),
-                      blurRadius: 15,
-                      spreadRadius: 2,
-                    ),
-                  ],
-                ),
-                padding: EdgeInsets.all(4),
-                child: GestureDetector(
-                  onTap: () {
-                    // Show options to change profile picture
-                    _showChangePhotoOptions();
-                  },
-                  child: Stack(
-                    alignment: Alignment.bottomRight,
-                    children: [
-                      Hero(
-                        tag: 'profile-pic',
-                        child: photoUrl.isNotEmpty
-                            ? CircleAvatar(
-                                radius: 60,
-                                backgroundImage: NetworkImage(photoUrl),
-                              )
-                            : CircleAvatar(
-                                radius: 60,
-                                backgroundColor: AppColors.lightPurple,
-                                child: Icon(
-                                  Icons.person,
-                                  size: 60,
-                                  color: AppColors.primaryPurple,
-                                ),
-                              ),
-                      ),
-                      // Camera icon for changing photo - restyled
-                      Container(
-                        padding: EdgeInsets.all(5),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [
-                              AppColors.primaryPurple,
-                              AppColors.secondaryPurple,
-                            ],
-                          ),
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 2),
-                        ),
-                        child: Icon(
-                          Icons.camera_alt,
-                          color: Colors.white,
-                          size: 16,
-                        ),
+
+          // Profile content with overlapping avatar
+          Container(
+            transform: Matrix4.translationValues(0, -60, 0),
+            child: Column(
+              children: [
+                // Profile picture with elevated card effect
+                Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white,
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primaryPurple.withOpacity(0.3),
+                        blurRadius: 15,
+                        spreadRadius: 2,
                       ),
                     ],
                   ),
+                  padding: EdgeInsets.all(4),
+                  child: GestureDetector(
+                    onTap: () {
+                      // Show options to change profile picture
+                      _showChangePhotoOptions();
+                    },
+                    child: Stack(
+                      alignment: Alignment.bottomRight,
+                      children: [
+                        Hero(
+                          tag: 'profile-pic',
+                          child:
+                              photoUrl.isNotEmpty
+                                  ? CircleAvatar(
+                                    radius: 60,
+                                    backgroundImage: NetworkImage(photoUrl),
+                                  )
+                                  : CircleAvatar(
+                                    radius: 60,
+                                    backgroundColor: AppColors.lightPurple,
+                                    child: Icon(
+                                      Icons.person,
+                                      size: 60,
+                                      color: AppColors.primaryPurple,
+                                    ),
+                                  ),
+                        ),
+                        // Camera icon for changing photo - restyled
+                        Container(
+                          padding: EdgeInsets.all(5),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                AppColors.primaryPurple,
+                                AppColors.secondaryPurple,
+                              ],
+                            ),
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white, width: 2),
+                          ),
+                          child: Icon(
+                            Icons.camera_alt,
+                            color: Colors.white,
+                            size: 16,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-              ),
-              SizedBox(height: 16),
+                SizedBox(height: 16),
 
-             // User info card
-              Container(
-                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 10), // tighter all around
-                width: double.infinity,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    // User name
-                    Text(
-                      userName,
-                      style: TextStyle(
-                        fontSize: 21, // smaller font
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.primaryPurple,
-                        letterSpacing: 0.3,
-                      ),
-                    ),
-                    SizedBox(height: 2), // super tight spacing
-
-                    // User email
-                    Container(
-                      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: const Color.fromARGB(255, 253, 253, 253).withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        userEmail,
+                // User info card
+                Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 10,
+                  ), // tighter all around
+                  width: double.infinity,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      // User name
+                      Text(
+                        userName,
                         style: TextStyle(
-                          fontSize: 16, // smaller font
-                          color: AppColors.secondaryPurple,
-                          fontWeight: FontWeight.w500,
+                          fontSize: 21, // smaller font
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.primaryPurple,
+                          letterSpacing: 0.3,
                         ),
                       ),
-                    ),
-                    SizedBox(height: 8), // very compact
-
-                    // Edit profile button
-                    SizedBox(
-                      width: 180,
-                      child: ElevatedButton.icon(
-                        icon: Icon(Icons.edit_outlined, size: 19), // smaller icon
-                        label: Text(
-                          'Edit Profile',
-                          style: TextStyle(fontSize: 18), // smaller font
+                      SizedBox(height: 2), // super tight spacing
+                      // User email
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
                         ),
-                        onPressed: () => _showEditProfileDialog(context, userName),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primaryPurple,
-                          foregroundColor: Colors.white,
-                          padding: EdgeInsets.symmetric(vertical: 7), // tighter vertical
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                        decoration: BoxDecoration(
+                          color: const Color.fromARGB(
+                            255,
+                            253,
+                            253,
+                            253,
+                          ).withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          userEmail,
+                          style: TextStyle(
+                            fontSize: 16, // smaller font
+                            color: AppColors.secondaryPurple,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                       ),
-                    ),
-                    SizedBox(height: 3), // minimal space at the bottom
-                  ],
+                      SizedBox(height: 8), // very compact
+                      // Edit profile button
+                      SizedBox(
+                        width: 180,
+                        child: ElevatedButton.icon(
+                          icon: Icon(
+                            Icons.edit_outlined,
+                            size: 19,
+                          ), // smaller icon
+                          label: Text(
+                            'Edit Profile',
+                            style: TextStyle(fontSize: 18), // smaller font
+                          ),
+                          onPressed:
+                              () => _showEditProfileDialog(context, userName),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primaryPurple,
+                            foregroundColor: Colors.white,
+                            padding: EdgeInsets.symmetric(
+                              vertical: 7,
+                            ), // tighter vertical
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 3), // minimal space at the bottom
+                    ],
+                  ),
                 ),
-              )
-            ],
+              ],
+            ),
           ),
-        ),
-      ],
-    ),
-  );
-}
+        ],
+      ),
+    );
+  }
 
   // Statistics section
   Widget _buildStatisticsSection() {
@@ -556,7 +557,7 @@ Widget _buildProfileHeader(String userName, String userEmail, String photoUrl) {
             ),
           ),
           SizedBox(height: 12),
-          
+
           // Settings items with improved styling
           _buildSettingsItem(
             icon: Icons.settings,
@@ -617,7 +618,7 @@ Widget _buildProfileHeader(String userName, String userEmail, String photoUrl) {
             ),
           ),
           SizedBox(height: 12),
-          
+
           // Danger zone
           _buildSettingsItem(
             icon: Icons.logout,
@@ -645,9 +646,7 @@ Widget _buildProfileHeader(String userName, String userEmail, String photoUrl) {
     return Card(
       elevation: 4,
       shadowColor: AppColors.primaryPurple.withOpacity(0.3),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
@@ -656,7 +655,9 @@ Widget _buildProfileHeader(String userName, String userEmail, String photoUrl) {
             end: Alignment.bottomRight,
             colors: [
               _isDarkMode ? Colors.grey.shade800 : Colors.white,
-              _isDarkMode ? Colors.grey.shade900.withOpacity(0.8) : Colors.white.withOpacity(0.9),
+              _isDarkMode
+                  ? Colors.grey.shade900.withOpacity(0.8)
+                  : Colors.white.withOpacity(0.9),
             ],
           ),
           boxShadow: [
@@ -671,11 +672,7 @@ Widget _buildProfileHeader(String userName, String userEmail, String photoUrl) {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              icon,
-              size: 36,
-              color: AppColors.secondaryPurple,
-            ),
+            Icon(icon, size: 36, color: AppColors.secondaryPurple),
             SizedBox(height: 8),
             Text(
               value,
@@ -690,7 +687,8 @@ Widget _buildProfileHeader(String userName, String userEmail, String photoUrl) {
               title,
               style: TextStyle(
                 fontSize: 14,
-                color: _isDarkMode ? Colors.grey.shade400 : Colors.grey.shade600,
+                color:
+                    _isDarkMode ? Colors.grey.shade400 : Colors.grey.shade600,
               ),
             ),
           ],
@@ -736,12 +734,18 @@ Widget _buildProfileHeader(String userName, String userEmail, String photoUrl) {
                 Container(
                   padding: EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: (iconColor ?? AppColors.secondaryPurple).withOpacity(0.1),
+                    color: (iconColor ?? AppColors.secondaryPurple).withOpacity(
+                      0.1,
+                    ),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
                     icon,
-                    color: iconColor ?? (_isDarkMode ? AppColors.lightPurple : AppColors.secondaryPurple),
+                    color:
+                        iconColor ??
+                        (_isDarkMode
+                            ? AppColors.lightPurple
+                            : AppColors.secondaryPurple),
                     size: 24,
                   ),
                 ),
@@ -755,7 +759,9 @@ Widget _buildProfileHeader(String userName, String userEmail, String photoUrl) {
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
-                          color: textColor ?? (_isDarkMode ? Colors.white : AppColors.darkGrey),
+                          color:
+                              textColor ??
+                              (_isDarkMode ? Colors.white : AppColors.darkGrey),
                         ),
                       ),
                       if (subtitle != null)
@@ -765,7 +771,10 @@ Widget _buildProfileHeader(String userName, String userEmail, String photoUrl) {
                             subtitle,
                             style: TextStyle(
                               fontSize: 13,
-                              color: _isDarkMode ? Colors.grey.shade400 : Colors.grey.shade600,
+                              color:
+                                  _isDarkMode
+                                      ? Colors.grey.shade400
+                                      : Colors.grey.shade600,
                             ),
                           ),
                         ),
@@ -775,7 +784,8 @@ Widget _buildProfileHeader(String userName, String userEmail, String photoUrl) {
                 Icon(
                   Icons.arrow_forward_ios,
                   size: 16,
-                  color: _isDarkMode ? Colors.grey.shade400 : Colors.grey.shade600,
+                  color:
+                      _isDarkMode ? Colors.grey.shade400 : Colors.grey.shade600,
                 ),
               ],
             ),
@@ -794,54 +804,64 @@ Widget _buildProfileHeader(String userName, String userEmail, String photoUrl) {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (context) => Container(
-        padding: EdgeInsets.symmetric(vertical: 20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'Change Profile Photo',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: AppColors.primaryPurple,
-              ),
+      builder:
+          (context) => Container(
+            padding: EdgeInsets.symmetric(vertical: 20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Change Profile Photo',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.primaryPurple,
+                  ),
+                ),
+                SizedBox(height: 20),
+                ListTile(
+                  leading: Icon(
+                    Icons.photo_library,
+                    color: AppColors.secondaryPurple,
+                  ),
+                  title: Text('Choose from Gallery'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    // Implement photo picker
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Gallery picker would open here')),
+                    );
+                  },
+                ),
+                ListTile(
+                  leading: Icon(
+                    Icons.camera_alt,
+                    color: AppColors.secondaryPurple,
+                  ),
+                  title: Text('Take a Photo'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    // Implement camera
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Camera would open here')),
+                    );
+                  },
+                ),
+                if (_hasExistingPhoto()) // Only show if user has a profile photo
+                  ListTile(
+                    leading: Icon(Icons.delete, color: Colors.red),
+                    title: Text(
+                      'Remove Current Photo',
+                      style: TextStyle(color: Colors.red),
+                    ),
+                    onTap: () {
+                      Navigator.pop(context);
+                      _handleRemovePhoto();
+                    },
+                  ),
+              ],
             ),
-            SizedBox(height: 20),
-            ListTile(
-              leading: Icon(Icons.photo_library, color: AppColors.secondaryPurple),
-              title: Text('Choose from Gallery'),
-              onTap: () {
-                Navigator.pop(context);
-                // Implement photo picker
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Gallery picker would open here')),
-                );
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.camera_alt, color: AppColors.secondaryPurple),
-              title: Text('Take a Photo'),
-              onTap: () {
-                Navigator.pop(context);
-                // Implement camera
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Camera would open here')),
-                );
-              },
-            ),
-            if (_hasExistingPhoto()) // Only show if user has a profile photo
-              ListTile(
-                leading: Icon(Icons.delete, color: Colors.red),
-                title: Text('Remove Current Photo', style: TextStyle(color: Colors.red)),
-                onTap: () {
-                  Navigator.pop(context);
-                  _handleRemovePhoto();
-                },
-              ),
-          ],
-        ),
-      ),
+          ),
     );
   }
 
@@ -856,255 +876,309 @@ Widget _buildProfileHeader(String userName, String userEmail, String photoUrl) {
     // Show confirmation dialog
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Remove Photo'),
-        content: Text('Are you sure you want to remove your profile photo?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('Cancel'),
+      builder:
+          (context) => AlertDialog(
+            title: Text('Remove Photo'),
+            content: Text(
+              'Are you sure you want to remove your profile photo?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  // Implement photo removal
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Profile photo removed'),
+                      backgroundColor: AppColors.successGreen,
+                    ),
+                  );
+                },
+                style: TextButton.styleFrom(foregroundColor: Colors.red),
+                child: Text('Remove'),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              // Implement photo removal
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Profile photo removed'),
-                  backgroundColor: AppColors.successGreen,
-                ),
-              );
-            },
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: Text('Remove'),
-          ),
-        ],
-      ),
     );
   }
 
   // Enhanced edit profile dialog with better design and validation
   void _showEditProfileDialog(BuildContext context, String currentName) {
     final formKey = GlobalKey<FormState>();
-    final TextEditingController nameController = TextEditingController(text: currentName);
+    final TextEditingController nameController = TextEditingController(
+      text: currentName,
+    );
     final TextEditingController passwordController = TextEditingController();
-    final TextEditingController confirmPasswordController = TextEditingController();
-    
+    final TextEditingController confirmPasswordController =
+        TextEditingController();
+
     // Password visibility toggles
     bool _obscurePassword = true;
     bool _obscureConfirmPassword = true;
-    
+
     // Stateful builder to handle password visibility toggle
     showDialog(
       context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setState) => AlertDialog(
-          title: Row(
-            children: [
-              Icon(Icons.edit, color: AppColors.primaryPurple, size: 24),
-              SizedBox(width: 8),
-              Text(
-                'Edit Profile',
-                style: TextStyle(
-                  color: AppColors.primaryPurple,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          content: SingleChildScrollView(
-            child: Form(
-              key: formKey,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Display name field with validation
-                  TextFormField(
-                    controller: nameController,
-                    decoration: InputDecoration(
-                      labelText: 'Display Name',
-                      labelStyle: TextStyle(color: AppColors.secondaryPurple),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
+      builder:
+          (context) => StatefulBuilder(
+            builder:
+                (context, setState) => AlertDialog(
+                  title: Row(
+                    children: [
+                      Icon(
+                        Icons.edit,
+                        color: AppColors.primaryPurple,
+                        size: 24,
                       ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: AppColors.primaryPurple, width: 2),
-                      ),
-                      prefixIcon: Icon(Icons.person, color: AppColors.secondaryPurple),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return 'Please enter a display name';
-                      }
-                      return null;
-                    },
-                  ),
-                  SizedBox(height: 20),
-
-                  // New password field with visibility toggle
-                  TextFormField(
-                    controller: passwordController,
-                    obscureText: _obscurePassword,
-                    decoration: InputDecoration(
-                      labelText: 'New Password (Optional)',
-                      labelStyle: TextStyle(color: AppColors.secondaryPurple),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: AppColors.primaryPurple, width: 2),
-                      ),
-                      prefixIcon: Icon(Icons.lock, color: AppColors.secondaryPurple),
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _obscurePassword ? Icons.visibility : Icons.visibility_off,
-                          color: AppColors.secondaryPurple,
+                      SizedBox(width: 8),
+                      Text(
+                        'Edit Profile',
+                        style: TextStyle(
+                          color: AppColors.primaryPurple,
+                          fontWeight: FontWeight.bold,
                         ),
-                        onPressed: () {
-                          setState(() {
-                            _obscurePassword = !_obscurePassword;
-                          });
-                        },
                       ),
-                    ),
-                    validator: (value) {
-                      if (value != null && value.isNotEmpty) {
-                        if (value.length < 8) {
-                          return 'Password must be at least 8 characters';
-                        }
-                        if (!value.contains(RegExp(r'[0-9]'))) {
-                          return 'Password must contain a number';
-                        }
-                        if (!value.contains(RegExp(r'[a-zA-Z]'))) {
-                          return 'Password must contain a letter';
-                        }
-                      }
-                      return null;
-                    },
+                    ],
                   ),
-                  SizedBox(height: 20),
-
-                  // Confirm new password field
-                  TextFormField(
-                    controller: confirmPasswordController,
-                    obscureText: _obscureConfirmPassword,
-                    decoration: InputDecoration(
-                      labelText: 'Confirm New Password',
-                      labelStyle: TextStyle(color: AppColors.secondaryPurple),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: AppColors.primaryPurple, width: 2),
-                      ),
-                      prefixIcon: Icon(Icons.lock_outline, color: AppColors.secondaryPurple),
-                      suffixIcon: IconButton(
-                        icon: Icon(_obscureConfirmPassword ? Icons.visibility : Icons.visibility_off,
-                          color: AppColors.secondaryPurple,
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            _obscureConfirmPassword = !_obscureConfirmPassword;
-                          });
-                        },
-                      ),
-                    ),
-                    validator: (value) {
-                      if (passwordController.text.isNotEmpty) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please confirm your new password';
-                        }
-                        if (value != passwordController.text) {
-                          return 'Passwords do not match';
-                        }
-                      }
-                      return null;
-                    },
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
                   ),
-                  SizedBox(height: 20),
-
-                  // Password requirements info with interactive checkmarks
-                  if (passwordController.text.isNotEmpty)
-                    Container(
-                      padding: EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: AppColors.lightPurple.withOpacity(0.3),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: AppColors.lightPurple),
-                      ),
+                  content: SingleChildScrollView(
+                    child: Form(
+                      key: formKey,
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text(
-                            'Password Requirements:',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.darkPurple,
+                          // Display name field with validation
+                          TextFormField(
+                            controller: nameController,
+                            decoration: InputDecoration(
+                              labelText: 'Display Name',
+                              labelStyle: TextStyle(
+                                color: AppColors.secondaryPurple,
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(
+                                  color: AppColors.primaryPurple,
+                                  width: 2,
+                                ),
+                              ),
+                              prefixIcon: Icon(
+                                Icons.person,
+                                color: AppColors.secondaryPurple,
+                              ),
                             ),
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return 'Please enter a display name';
+                              }
+                              return null;
+                            },
                           ),
-                          SizedBox(height: 8),
-                          _buildPasswordRequirement(
-                            'At least 8 characters',
-                            passwordController.text.length >= 8,
+                          SizedBox(height: 20),
+
+                          // New password field with visibility toggle
+                          TextFormField(
+                            controller: passwordController,
+                            obscureText: _obscurePassword,
+                            decoration: InputDecoration(
+                              labelText: 'New Password (Optional)',
+                              labelStyle: TextStyle(
+                                color: AppColors.secondaryPurple,
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(
+                                  color: AppColors.primaryPurple,
+                                  width: 2,
+                                ),
+                              ),
+                              prefixIcon: Icon(
+                                Icons.lock,
+                                color: AppColors.secondaryPurple,
+                              ),
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _obscurePassword
+                                      ? Icons.visibility
+                                      : Icons.visibility_off,
+                                  color: AppColors.secondaryPurple,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    _obscurePassword = !_obscurePassword;
+                                  });
+                                },
+                              ),
+                            ),
+                            validator: (value) {
+                              if (value != null && value.isNotEmpty) {
+                                if (value.length < 8) {
+                                  return 'Password must be at least 8 characters';
+                                }
+                                if (!value.contains(RegExp(r'[0-9]'))) {
+                                  return 'Password must contain a number';
+                                }
+                                if (!value.contains(RegExp(r'[a-zA-Z]'))) {
+                                  return 'Password must contain a letter';
+                                }
+                              }
+                              return null;
+                            },
                           ),
-                          _buildPasswordRequirement(
-                            'Contains a number',
-                            passwordController.text.contains(RegExp(r'[0-9]')),
+                          SizedBox(height: 20),
+
+                          // Confirm new password field
+                          TextFormField(
+                            controller: confirmPasswordController,
+                            obscureText: _obscureConfirmPassword,
+                            decoration: InputDecoration(
+                              labelText: 'Confirm New Password',
+                              labelStyle: TextStyle(
+                                color: AppColors.secondaryPurple,
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(
+                                  color: AppColors.primaryPurple,
+                                  width: 2,
+                                ),
+                              ),
+                              prefixIcon: Icon(
+                                Icons.lock_outline,
+                                color: AppColors.secondaryPurple,
+                              ),
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _obscureConfirmPassword
+                                      ? Icons.visibility
+                                      : Icons.visibility_off,
+                                  color: AppColors.secondaryPurple,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    _obscureConfirmPassword =
+                                        !_obscureConfirmPassword;
+                                  });
+                                },
+                              ),
+                            ),
+                            validator: (value) {
+                              if (passwordController.text.isNotEmpty) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Please confirm your new password';
+                                }
+                                if (value != passwordController.text) {
+                                  return 'Passwords do not match';
+                                }
+                              }
+                              return null;
+                            },
                           ),
-                          _buildPasswordRequirement(
-                            'Contains a letter',
-                            passwordController.text.contains(RegExp(r'[a-zA-Z]')),
-                          ),
-                          _buildPasswordRequirement(
-                            'Passwords match',
-                            passwordController.text == confirmPasswordController.text &&
-                                confirmPasswordController.text.isNotEmpty,
-                          ),
+                          SizedBox(height: 20),
+
+                          // Password requirements info with interactive checkmarks
+                          if (passwordController.text.isNotEmpty)
+                            Container(
+                              padding: EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: AppColors.lightPurple.withOpacity(0.3),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: AppColors.lightPurple,
+                                ),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Password Requirements:',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.darkPurple,
+                                    ),
+                                  ),
+                                  SizedBox(height: 8),
+                                  _buildPasswordRequirement(
+                                    'At least 8 characters',
+                                    passwordController.text.length >= 8,
+                                  ),
+                                  _buildPasswordRequirement(
+                                    'Contains a number',
+                                    passwordController.text.contains(
+                                      RegExp(r'[0-9]'),
+                                    ),
+                                  ),
+                                  _buildPasswordRequirement(
+                                    'Contains a letter',
+                                    passwordController.text.contains(
+                                      RegExp(r'[a-zA-Z]'),
+                                    ),
+                                  ),
+                                  _buildPasswordRequirement(
+                                    'Passwords match',
+                                    passwordController.text ==
+                                            confirmPasswordController.text &&
+                                        confirmPasswordController
+                                            .text
+                                            .isNotEmpty,
+                                  ),
+                                ],
+                              ),
+                            ),
                         ],
                       ),
                     ),
-                ],
-              ),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text(
-                'Cancel',
-                style: TextStyle(color: Colors.grey),
-              ),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primaryPurple,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30),
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: Text(
+                        'Cancel',
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                    ),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primaryPurple,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 10,
+                        ),
+                      ),
+                      onPressed: () {
+                        // Validate form
+                        if (formKey.currentState!.validate()) {
+                          _updateUserProfile(
+                            nameController.text.trim(),
+                            passwordController.text.trim(),
+                          );
+                          Navigator.of(context).pop();
+                        }
+                      },
+                      child: Text('Save Changes'),
+                    ),
+                  ],
                 ),
-                padding: EdgeInsets.symmetric(horizontal: 24, vertical: 10),
-              ),
-              onPressed: () {
-                // Validate form
-                if (formKey.currentState!.validate()) {
-                  _updateUserProfile(
-                    nameController.text.trim(),
-                    passwordController.text.trim(),
-                  );
-                  Navigator.of(context).pop();
-                }
-              },
-              child: Text('Save Changes'),
-            ),
-          ],
-        ),
-      ),
+          ),
     );
   }
 
@@ -1133,7 +1207,10 @@ Widget _buildProfileHeader(String userName, String userEmail, String photoUrl) {
   }
 
   // Update user profile in Firestore
-  Future<void> _updateUserProfile(String displayName, String newPassword) async {
+  Future<void> _updateUserProfile(
+    String displayName,
+    String newPassword,
+  ) async {
     final User? user = authService.value.currentUser;
     if (user == null) return;
 
@@ -1142,11 +1219,14 @@ Widget _buildProfileHeader(String userName, String userEmail, String photoUrl) {
       showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (context) => Center(
-          child: CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryPurple),
-          ),
-        ),
+        builder:
+            (context) => Center(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  AppColors.primaryPurple,
+                ),
+              ),
+            ),
       );
 
       // Update display name in Firestore
@@ -1179,7 +1259,9 @@ Widget _buildProfileHeader(String userName, String userEmail, String photoUrl) {
           ),
           backgroundColor: AppColors.successGreen,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
           margin: EdgeInsets.all(12),
           duration: Duration(seconds: 3),
         ),
@@ -1187,14 +1269,16 @@ Widget _buildProfileHeader(String userName, String userEmail, String photoUrl) {
     } catch (e) {
       // Close loading dialog
       Navigator.of(context).pop();
-      
+
       // Show error message
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error updating profile: $e'),
           backgroundColor: AppColors.errorRed,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
           margin: EdgeInsets.all(12),
         ),
       );
@@ -1203,29 +1287,36 @@ Widget _buildProfileHeader(String userName, String userEmail, String photoUrl) {
 
   // Handle logout with confirmation
   void _handleLogout() async {
-    bool confirm = await showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Logout'),
-        content: Text('Are you sure you want to logout?'),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-            ),
-            child: Text('Logout'),
-          ),
-        ],
-      ),
-    ) ?? false;
+    bool confirm =
+        await showDialog(
+          context: context,
+          builder:
+              (context) => AlertDialog(
+                title: Text('Logout'),
+                content: Text('Are you sure you want to logout?'),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(false),
+                    child: Text('Cancel'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () => Navigator.of(context).pop(true),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                    ),
+                    child: Text('Logout'),
+                  ),
+                ],
+              ),
+        ) ??
+        false;
 
     if (confirm) {
       try {
@@ -1233,32 +1324,37 @@ Widget _buildProfileHeader(String userName, String userEmail, String photoUrl) {
         showDialog(
           context: context,
           barrierDismissible: false,
-          builder: (context) => Center(
-            child: CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryPurple),
-            ),
-          ),
+          builder:
+              (context) => Center(
+                child: CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    AppColors.primaryPurple,
+                  ),
+                ),
+              ),
         );
-        
+
         // Sign out the user
         await authService.value.signOut();
-        
+
         // Close loading dialog
         Navigator.of(context).pop();
-        
+
         // Navigate to login screen
         Navigator.pushReplacementNamed(context, '/');
       } catch (e) {
         // Close loading dialog
         Navigator.of(context).pop();
-        
+
         // Handle any errors during logout
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error during logout: $e'),
             backgroundColor: AppColors.errorRed,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
             margin: EdgeInsets.all(12),
           ),
         );
@@ -1269,97 +1365,121 @@ Widget _buildProfileHeader(String userName, String userEmail, String photoUrl) {
   // Handle account deletion with confirmation
   void _handleDeleteAccount() async {
     // First confirmation
-    bool confirmDelete = await showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Delete Account'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 36),
-            SizedBox(height: 16),
-            Text(
-              'Warning: This action cannot be undone!',
-              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red),
-            ),
-            SizedBox(height: 8),
-            Text('All your data will be permanently deleted, including:'),
-            SizedBox(height: 8),
-            ...['Profile information', 'Saved recipes', 'Meal plans', 'Preferences'].map(
-              (item) => Padding(
-                padding: const EdgeInsets.only(left: 8, bottom: 4),
-                child: Row(
+    bool confirmDelete =
+        await showDialog(
+          context: context,
+          builder:
+              (context) => AlertDialog(
+                title: Text('Delete Account'),
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(Icons.circle, size: 8, color: Colors.grey),
-                    SizedBox(width: 8),
-                    Text(item),
+                    Icon(
+                      Icons.warning_amber_rounded,
+                      color: Colors.orange,
+                      size: 36,
+                    ),
+                    SizedBox(height: 16),
+                    Text(
+                      'Warning: This action cannot be undone!',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.red,
+                      ),
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      'All your data will be permanently deleted, including:',
+                    ),
+                    SizedBox(height: 8),
+                    ...[
+                      'Profile information',
+                      'Saved recipes',
+                      'Meal plans',
+                      'Preferences',
+                    ].map(
+                      (item) => Padding(
+                        padding: const EdgeInsets.only(left: 8, bottom: 4),
+                        child: Row(
+                          children: [
+                            Icon(Icons.circle, size: 8, color: Colors.grey),
+                            SizedBox(width: 8),
+                            Text(item),
+                          ],
+                        ),
+                      ),
+                    ),
                   ],
                 ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(false),
+                    child: Text('Cancel'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () => Navigator.of(context).pop(true),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      foregroundColor: Colors.white,
+                    ),
+                    child: Text('Delete Account'),
+                  ),
+                ],
               ),
-            ),
-          ],
-        ),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
-            ),
-            child: Text('Delete Account'),
-          ),
-        ],
-      ),
-    ) ?? false;
+        ) ??
+        false;
 
     // Second confirmation with password
     if (confirmDelete) {
       final passwordController = TextEditingController();
-      
-      bool finalConfirm = await showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: Text('Confirm Deletion'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text('Please enter your password to confirm account deletion:'),
-              SizedBox(height: 16),
-              TextField(
-                controller: passwordController,
-                obscureText: true,
-                decoration: InputDecoration(
-                  labelText: 'Password',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
+
+      bool finalConfirm =
+          await showDialog(
+            context: context,
+            builder:
+                (context) => AlertDialog(
+                  title: Text('Confirm Deletion'),
+                  content: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'Please enter your password to confirm account deletion:',
+                      ),
+                      SizedBox(height: 16),
+                      TextField(
+                        controller: passwordController,
+                        obscureText: true,
+                        decoration: InputDecoration(
+                          labelText: 'Password',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          prefixIcon: Icon(Icons.lock),
+                        ),
+                      ),
+                    ],
                   ),
-                  prefixIcon: Icon(Icons.lock),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(false),
+                      child: Text('Cancel'),
+                    ),
+                    ElevatedButton(
+                      onPressed: () => Navigator.of(context).pop(true),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                        foregroundColor: Colors.white,
+                      ),
+                      child: Text('Confirm Deletion'),
+                    ),
+                  ],
                 ),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-                foregroundColor: Colors.white,
-              ),
-              child: Text('Confirm Deletion'),
-            ),
-          ],
-        ),
-      ) ?? false;
+          ) ??
+          false;
 
       if (finalConfirm) {
         try {
@@ -1367,11 +1487,14 @@ Widget _buildProfileHeader(String userName, String userEmail, String photoUrl) {
           showDialog(
             context: context,
             barrierDismissible: false,
-            builder: (context) => Center(
-              child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryPurple),
-              ),
-            ),
+            builder:
+                (context) => Center(
+                  child: CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      AppColors.primaryPurple,
+                    ),
+                  ),
+                ),
           );
 
           final user = authService.value.currentUser;
@@ -1382,21 +1505,24 @@ Widget _buildProfileHeader(String userName, String userEmail, String photoUrl) {
               email: user.email!,
               password: passwordController.text,
             );
-            
+
             await user.reauthenticateWithCredential(credential);
-            
+
             // Delete user data in Firestore
-            await FirebaseFirestore.instance.collection('users').doc(user.uid).delete();
-            
+            await FirebaseFirestore.instance
+                .collection('users')
+                .doc(user.uid)
+                .delete();
+
             // Delete meal plans, favorites, and other user-specific collections
             // This would involve additional Firestore queries and deletes
-            
+
             // Delete Firebase user account
             await user.delete();
-            
+
             // Close loading dialog
             if (context.mounted) Navigator.of(context).pop();
-            
+
             // Navigate to login screen
             if (context.mounted) {
               Navigator.pushNamedAndRemoveUntil(
@@ -1409,13 +1535,15 @@ Widget _buildProfileHeader(String userName, String userEmail, String photoUrl) {
         } catch (e) {
           // Close loading dialog if open
           Navigator.of(context).pop();
-          
+
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Error deleting account: $e'),
               backgroundColor: AppColors.errorRed,
               behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
               margin: EdgeInsets.all(12),
             ),
           );

@@ -6,7 +6,6 @@ import 'package:table_calendar/table_calendar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../screens/recipes_screen.dart';
 import '../screens/user_profile_screen.dart';
-import '../screens/add_meal_screen.dart';
 import '../services/firestore.dart';
 
 // Custom color palette
@@ -323,18 +322,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
   }
 
   // Navigate to AddMealScreen with preselected date
-  void _navigateToAddMeal([Map<String, dynamic>? mealToEdit]) async {
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder:
-            (context) => AddMealScreen(
-              mealToEdit: mealToEdit,
-              preselectedDate: _selectedDay,
-            ),
-      ),
-    );
-  }
+  void _navigateToAddMeal([Map<String, dynamic>? mealToEdit]) async {}
 
   Widget _buildEventList(bool isDarkMode) {
     final events = _getEventsForDay(_selectedDay!);

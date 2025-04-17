@@ -26,7 +26,12 @@ class AuthService {
   }) async {
     UserCredential userCredential = await firebaseAuth
         .createUserWithEmailAndPassword(email: email, password: password);
-    await userCredential.user?.updateDisplayName(name);
+    try {
+      await userCredential.user?.updateDisplayName(name);
+    } catch (e) {
+      debugPrint('⚠️ Failed to update display name: $e');
+      // This shouldn't block the registration, so we just log the warning.
+    }
 
     return userCredential;
   }

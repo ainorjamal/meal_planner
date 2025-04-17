@@ -99,8 +99,6 @@ class _AddMealScreenState extends State<AddMealScreen> {
   }
 
   Future<void> _selectTime(BuildContext context) async {
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    
     final TimeOfDay? pickedTime = await showTimePicker(
       context: context,
       initialTime: _selectedTime ?? TimeOfDay.now(),
@@ -125,9 +123,7 @@ class _AddMealScreenState extends State<AddMealScreen> {
               ),
             ),
             textButtonTheme: TextButtonThemeData(
-              style: TextButton.styleFrom(
-                foregroundColor: AppColors.primary,
-              ),
+              style: TextButton.styleFrom(foregroundColor: AppColors.primary),
             ),
             colorScheme: ColorScheme.light(
               primary: AppColors.primary,
@@ -151,7 +147,7 @@ class _AddMealScreenState extends State<AddMealScreen> {
 
   Future<void> _selectDate(BuildContext context) async {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    
+
     final DateTime? pickedDate = await showDatePicker(
       context: context,
       initialDate: _selectedDate,
@@ -166,52 +162,65 @@ class _AddMealScreenState extends State<AddMealScreen> {
               surface: isDarkMode ? AppColors.darkBackground : Colors.white,
               onSurface: isDarkMode ? AppColors.textLight : AppColors.textDark,
             ),
-            dialogBackgroundColor: isDarkMode ? AppColors.darkBackground : Colors.white,
+            dialogBackgroundColor:
+                isDarkMode ? AppColors.darkBackground : Colors.white,
             textButtonTheme: TextButtonThemeData(
               style: TextButton.styleFrom(
                 foregroundColor: AppColors.primary,
-                textStyle: TextStyle(
-                  fontWeight: FontWeight.bold,
-                ),
+                textStyle: TextStyle(fontWeight: FontWeight.bold),
               ),
             ),
             datePickerTheme: DatePickerThemeData(
               headerBackgroundColor: AppColors.primary,
               headerForegroundColor: Colors.white,
               weekdayStyle: TextStyle(
-                color: isDarkMode ? AppColors.lightPurple : AppColors.darkPurple,
+                color:
+                    isDarkMode ? AppColors.lightPurple : AppColors.darkPurple,
                 fontWeight: FontWeight.bold,
               ),
               dayStyle: TextStyle(
                 color: isDarkMode ? AppColors.textLight : AppColors.textDark,
               ),
-              dayBackgroundColor: MaterialStateProperty.resolveWith<Color>((Set<MaterialState> states) {
+              dayBackgroundColor: MaterialStateProperty.resolveWith<Color>((
+                Set<MaterialState> states,
+              ) {
                 if (states.contains(MaterialState.selected)) {
                   return AppColors.primary;
                 }
                 return isDarkMode ? Colors.transparent : Colors.transparent;
               }),
-              todayBackgroundColor: MaterialStateProperty.resolveWith<Color>((Set<MaterialState> states) {
+              todayBackgroundColor: MaterialStateProperty.resolveWith<Color>((
+                Set<MaterialState> states,
+              ) {
                 return AppColors.secondary.withOpacity(0.3);
               }),
-              todayForegroundColor: MaterialStateProperty.resolveWith<Color>((Set<MaterialState> states) {
+              todayForegroundColor: MaterialStateProperty.resolveWith<Color>((
+                Set<MaterialState> states,
+              ) {
                 return AppColors.darkPurple;
               }),
-              dayForegroundColor: MaterialStateProperty.resolveWith<Color>((Set<MaterialState> states) {
+              dayForegroundColor: MaterialStateProperty.resolveWith<Color>((
+                Set<MaterialState> states,
+              ) {
                 if (states.contains(MaterialState.selected)) {
                   return Colors.white;
                 }
                 return isDarkMode ? AppColors.textLight : AppColors.textDark;
               }),
               surfaceTintColor: Colors.transparent,
-              backgroundColor: isDarkMode ? AppColors.darkBackground : Colors.white,
-              yearBackgroundColor: MaterialStateProperty.resolveWith<Color>((Set<MaterialState> states) {
+              backgroundColor:
+                  isDarkMode ? AppColors.darkBackground : Colors.white,
+              yearBackgroundColor: MaterialStateProperty.resolveWith<Color>((
+                Set<MaterialState> states,
+              ) {
                 if (states.contains(MaterialState.selected)) {
                   return AppColors.primary;
                 }
                 return isDarkMode ? Colors.grey[800]! : Colors.grey[100]!;
               }),
-              yearForegroundColor: MaterialStateProperty.resolveWith<Color>((Set<MaterialState> states) {
+              yearForegroundColor: MaterialStateProperty.resolveWith<Color>((
+                Set<MaterialState> states,
+              ) {
                 if (states.contains(MaterialState.selected)) {
                   return Colors.white;
                 }
@@ -238,7 +247,8 @@ class _AddMealScreenState extends State<AddMealScreen> {
   @override
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    final backgroundColor = isDarkMode ? AppColors.darkBackground : AppColors.background;
+    final backgroundColor =
+        isDarkMode ? AppColors.darkBackground : AppColors.background;
     final cardColor = isDarkMode ? Color(0xFF3D3A4A) : Colors.white;
     final textColor = isDarkMode ? AppColors.textLight : AppColors.textDark;
 
@@ -261,9 +271,16 @@ class _AddMealScreenState extends State<AddMealScreen> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: isDarkMode
-                ? [AppColors.darkPurple.withOpacity(0.3), AppColors.darkBackground]
-                : [AppColors.primary.withOpacity(0.05), AppColors.background],
+            colors:
+                isDarkMode
+                    ? [
+                      AppColors.darkPurple.withOpacity(0.3),
+                      AppColors.darkBackground,
+                    ]
+                    : [
+                      AppColors.primary.withOpacity(0.05),
+                      AppColors.background,
+                    ],
           ),
         ),
         child: SingleChildScrollView(
@@ -397,13 +414,15 @@ class _AddMealScreenState extends State<AddMealScreen> {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isDarkMode 
-                ? AppColors.lightPurple.withOpacity(0.4) 
-                : AppColors.primary.withOpacity(0.4),
+            color:
+                isDarkMode
+                    ? AppColors.lightPurple.withOpacity(0.4)
+                    : AppColors.primary.withOpacity(0.4),
           ),
-          color: isDarkMode 
-              ? Colors.grey[800]!.withOpacity(0.5) 
-              : Colors.grey[100]!.withOpacity(0.7),
+          color:
+              isDarkMode
+                  ? Colors.grey[800]!.withOpacity(0.5)
+                  : Colors.grey[100]!.withOpacity(0.7),
         ),
         child: TextField(
           controller: controller,
@@ -415,9 +434,10 @@ class _AddMealScreenState extends State<AddMealScreen> {
           decoration: InputDecoration(
             labelText: 'Date',
             labelStyle: TextStyle(
-              color: isDarkMode 
-                  ? AppColors.lightPurple 
-                  : AppColors.primary.withOpacity(0.8),
+              color:
+                  isDarkMode
+                      ? AppColors.lightPurple
+                      : AppColors.primary.withOpacity(0.8),
             ),
             prefixIcon: Icon(
               Icons.calendar_today,
@@ -452,7 +472,10 @@ class _AddMealScreenState extends State<AddMealScreen> {
       decoration: InputDecoration(
         labelText: label,
         labelStyle: TextStyle(
-          color: isDarkMode ? AppColors.lightPurple : AppColors.primary.withOpacity(0.8),
+          color:
+              isDarkMode
+                  ? AppColors.lightPurple
+                  : AppColors.primary.withOpacity(0.8),
         ),
         prefixIcon: Icon(
           icon,
@@ -461,18 +484,21 @@ class _AddMealScreenState extends State<AddMealScreen> {
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(
-            color: isDarkMode ? AppColors.lightPurple.withOpacity(0.4) : AppColors.primary.withOpacity(0.4),
+            color:
+                isDarkMode
+                    ? AppColors.lightPurple.withOpacity(0.4)
+                    : AppColors.primary.withOpacity(0.4),
           ),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(
-            color: AppColors.primary,
-            width: 2,
-          ),
+          borderSide: BorderSide(color: AppColors.primary, width: 2),
         ),
         filled: true,
-        fillColor: isDarkMode ? Colors.grey[800]!.withOpacity(0.5) : Colors.grey[100]!.withOpacity(0.7),
+        fillColor:
+            isDarkMode
+                ? Colors.grey[800]!.withOpacity(0.5)
+                : Colors.grey[100]!.withOpacity(0.7),
         contentPadding: EdgeInsets.symmetric(
           horizontal: 16,
           vertical: maxLines > 1 ? 16 : 0,
@@ -486,15 +512,24 @@ class _AddMealScreenState extends State<AddMealScreen> {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isDarkMode ? AppColors.lightPurple.withOpacity(0.4) : AppColors.primary.withOpacity(0.4),
+          color:
+              isDarkMode
+                  ? AppColors.lightPurple.withOpacity(0.4)
+                  : AppColors.primary.withOpacity(0.4),
         ),
-        color: isDarkMode ? Colors.grey[800]!.withOpacity(0.5) : Colors.grey[100]!.withOpacity(0.7),
+        color:
+            isDarkMode
+                ? Colors.grey[800]!.withOpacity(0.5)
+                : Colors.grey[100]!.withOpacity(0.7),
       ),
       child: DropdownButtonFormField<String>(
         decoration: InputDecoration(
           labelText: 'Select meal type',
           labelStyle: TextStyle(
-            color: isDarkMode ? AppColors.lightPurple : AppColors.primary.withOpacity(0.8),
+            color:
+                isDarkMode
+                    ? AppColors.lightPurple
+                    : AppColors.primary.withOpacity(0.8),
           ),
           prefixIcon: Icon(
             Icons.category,
@@ -513,12 +548,12 @@ class _AddMealScreenState extends State<AddMealScreen> {
           fontSize: 16,
         ),
         value: _selectedMealType,
-        items: <String>['Breakfast', 'Lunch', 'Dinner', 'Snack'].map((String value) {
-          return DropdownMenuItem<String>(
-            value: value,
-            child: Text(value),
-          );
-        }).toList(),
+        items:
+            <String>['Breakfast', 'Lunch', 'Dinner', 'Snack'].map((
+              String value,
+            ) {
+              return DropdownMenuItem<String>(value: value, child: Text(value));
+            }).toList(),
         onChanged: (String? newValue) {
           setState(() {
             _selectedMealType = newValue;
@@ -581,9 +616,7 @@ class _AddMealScreenState extends State<AddMealScreen> {
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         padding: EdgeInsets.symmetric(vertical: 16),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         elevation: 2,
       ),
       child: Row(
@@ -593,10 +626,7 @@ class _AddMealScreenState extends State<AddMealScreen> {
           SizedBox(width: 8),
           Text(
             widget.mealToEdit == null ? 'Add Meal' : 'Save Changes',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
         ],
       ),

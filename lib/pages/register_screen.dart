@@ -40,7 +40,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   Future<void> _register() async {
     // Validate form
-    if (!_formKey.currentState!.validate() && _agreedToTerms) return;
+    if (!_formKey.currentState!.validate() || !_agreedToTerms) {
+      print("🛑 Form invalid or terms not accepted");
+
+      return;
+    }
 
     // Clear error message
     setState(() {
@@ -49,13 +53,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
     });
 
     try {
-      // Create account using AuthService
-      await authService.value.createAccount(
+      // Create account using AuthServicef
+      print("➡️ Trying to create account...");
+
+      final result = await authService.value.createAccount(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
         name: _nameController.text.trim(),
       );
-
+      print("✅ Account created for ${result.user?.email}");
       // Navigate to home page or profile setup page
       if (mounted) {
         Navigator.pushReplacementNamed(
@@ -65,9 +71,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
       }
     } on FirebaseAuthException catch (e) {
       setState(() {
+        print('Firebase error: ${e.code}, ${e.message}');
         _errorMessage = _getAuthErrorMessage(e.code);
+
+        print('Register Exception: $e');
       });
-    } catch (e) {
+    } catch (e, stackTrace) {
+      print("❌ Unexpected error: $e");
+      print(stackTrace); // Add this to see where exactly it breaks
       setState(() {
         _errorMessage = 'An unexpected error occurred. Please try again.';
       });
