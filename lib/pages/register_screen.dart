@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import '../auth/auth_service.dart';
 import 'dart:async';
 
@@ -13,7 +12,7 @@ class RegisterScreen extends StatefulWidget {
 
 class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController =
@@ -27,7 +26,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   void dispose() {
-    _usernameController.dispose();
+    _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
@@ -40,65 +39,59 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   Future<void> _register() async {
-    if (_formKey.currentState!.validate() && _agreedToTerms) {
-      setState(() {
-        _isLoading = true;
-        _errorMessage = null;
-      });
+    // Validate form
+    if (!_formKey.currentState!.validate() && _agreedToTerms) return;
 
-      try {
-        UserCredential userCredential = await authService.value.createAccount(
-          email: _emailController.text.trim(),
-          password: _passwordController.text.trim(),
-        );
+    // Clear error message
+    setState(() {
+      _errorMessage = null;
+      _isLoading = true;
+    });
 
-        User? user = userCredential.user;
+    try {
+      // Create account using AuthService
+      await authService.value.createAccount(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+        name: _nameController.text.trim(),
+      );
 
-        await user!.updateDisplayName(_usernameController.text.trim());
-        await user.sendEmailVerification();
-        await FirebaseAuth.instance.signOut();
-
-        if (mounted) {
-          Fluttertoast.showToast(
-            msg: "Account created! Please verify your email before logging in.",
-            backgroundColor: Colors.green,
-            textColor: Colors.white,
-          );
-
-          Navigator.pushReplacementNamed(context, '/login');
-        }
-      } on FirebaseAuthException catch (e) {
-        String message;
-        switch (e.code) {
-          case 'weak-password':
-            message = 'The password is too weak.';
-            break;
-          case 'email-already-in-use':
-            message = 'An account already exists for that email.';
-            break;
-          case 'invalid-email':
-            message = 'The email address is not valid.';
-            break;
-          case 'operation-not-allowed':
-            message = 'Email/password accounts are not enabled.';
-            break;
-          default:
-            message = 'Registration failed. Please try again.';
-        }
-        setState(() {
-          _errorMessage = message;
-        });
-      } catch (e) {
-        setState(() {
-          _errorMessage = 'An unexpected error occurred. Please try again.';
-        });
-      } finally {
-        if (mounted) {
-          setState(() {
-            _isLoading = false;
-          });
-        }
+      // Navigate to home page or profile setup page
+      if (mounted) {
+        Navigator.pushReplacementNamed(
+          context,
+          '/home',
+        ); // Replace with your route
       }
+    } on FirebaseAuthException catch (e) {
+      setState(() {
+        _errorMessage = _getAuthErrorMessage(e.code);
+      });
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'An unexpected error occurred. Please try again.';
+      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  String _getAuthErrorMessage(String code) {
+    switch (code) {
+      case 'email-already-in-use':
+        return 'This email is already registered. Please sign in or use another email.';
+      case 'invalid-email':
+        return 'The email address is not valid.';
+      case 'operation-not-allowed':
+        return 'Email/password accounts are not enabled.';
+      case 'weak-password':
+        return 'Please choose a stronger password.';
+      default:
+        return 'An error occurred during registration. Please try again.';
     }
   }
 
@@ -243,8 +236,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                     ),
 
-                  // Username Field
+                  // name Field
                   Container(
+                    margin: const EdgeInsets.only(bottom: 20),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [
@@ -256,10 +250,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ],
                     ),
                     child: TextFormField(
-                      controller: _usernameController,
+                      controller: _nameController,
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Please enter your name';
+                        }
+                        return null;
+                      },
                       decoration: InputDecoration(
-                        labelText: 'Username',
-                        hintText: 'Choose a username',
+                        labelText: 'Full Name',
+                        hintText: 'Enter your full name',
                         prefixIcon: const Icon(
                           Icons.person_outline,
                           color: Color(0xFF9C27B0),
@@ -278,13 +278,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           color: Colors.deepPurple,
                           fontWeight: FontWeight.w600,
                         ),
+                        errorStyle: TextStyle(
+                          color: Colors.red.shade700,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return 'Please enter a username';
-                        }
-                        return null;
-                      },
                     ),
                   ),
                   const SizedBox(height: 20),
