@@ -560,10 +560,49 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(6),
                             ),
-                            onChanged: (bool? value) {
-                              setState(() {
-                                _agreedToTerms = value ?? false;
-                              });
+                            onChanged: (bool? value) async {
+                              if (value == true && !_agreedToTerms) {
+                                final result = await showDialog<bool>(
+                                  context: context,
+                                  builder:
+                                      (context) => AlertDialog(
+                                        title: const Text(
+                                          'Terms and Conditions',
+                                        ),
+                                        content: const SingleChildScrollView(
+                                          child: Text(
+                                            'By using Meal Planner, you agree to our Terms and Conditions including meal data usage, app functionality, and nutritional advice disclaimer.',
+                                          ),
+                                        ),
+                                        actions: [
+                                          TextButton(
+                                            onPressed:
+                                                () => Navigator.of(
+                                                  context,
+                                                ).pop(false),
+                                            child: const Text('Decline'),
+                                          ),
+                                          TextButton(
+                                            onPressed:
+                                                () => Navigator.of(
+                                                  context,
+                                                ).pop(true),
+                                            child: const Text('Agree'),
+                                          ),
+                                        ],
+                                      ),
+                                );
+
+                                if (result == true) {
+                                  setState(() {
+                                    _agreedToTerms = true;
+                                  });
+                                }
+                              } else {
+                                setState(() {
+                                  _agreedToTerms = value ?? false;
+                                });
+                              }
                             },
                           ),
                         ),

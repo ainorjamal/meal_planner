@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/recipe.dart';
 
+
 // Custom color palette - same as in CalendarScreen
 class AppColors {
   static const Color primaryPurple = Color(0xFF6750A4);
@@ -39,38 +40,142 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
   String selectedMealType = 'Lunch'; // Default value
   final List<String> mealTypes = ['Breakfast', 'Lunch', 'Dinner', 'Snack'];
 
-  // Function to add the recipe to Firestore favorites
-  void _addToFavorites(BuildContext context) {
-    FirebaseFirestore.instance.collection('favorites').add({
-      'user_id': widget.userId,
-      'recipe_id': widget.recipe.id,
-      'recipe_name': widget.recipe.name,
-      'image_url': widget.recipe.imageUrl,
-      'timestamp': FieldValue.serverTimestamp(),
-    }).then((_) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Added to Favorites'),
-          backgroundColor: AppColors.primaryPurple,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
+  // Function to show success notification
+  void _showSuccessNotification(BuildContext context) {
+    // Create an overlay entry
+    OverlayState? overlayState = Overlay.of(context);
+    late OverlayEntry overlayEntry;
+    
+    overlayEntry = OverlayEntry(
+      builder: (context) => Positioned(
+        top: MediaQuery.of(context).viewPadding.top + 20,
+        left: 20,
+        right: 20,
+        child: Material(
+          elevation: 8,
+          borderRadius: BorderRadius.circular(12),
+          color: Colors.green,
+          child: Container(
+            padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.check_circle,
+                  color: Colors.white,
+                  size: 28,
+                ),
+                SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Success!',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      SizedBox(height: 4),
+                      Text(
+                        'Added to Meal Plan',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  icon: Icon(Icons.close, color: Colors.white),
+                  onPressed: () {
+                    overlayEntry.remove();
+                  },
+                ),
+              ],
+            ),
           ),
         ),
-      );
-    }).catchError((error) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to add to Favorites'),
-          backgroundColor: Colors.red,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
-      );
+      ),
+    );
+    
+    // Insert the overlay
+    overlayState.insert(overlayEntry);
+    
+    // Automatically remove after 3 seconds
+    Future.delayed(Duration(seconds: 3), () {
+      if (overlayEntry.mounted) {
+        overlayEntry.remove();
+      }
     });
   }
+
+  // Function to add the recipe to Firestore favorites
+  void _addToFavorites(BuildContext context) {
+  FirebaseFirestore.instance.collection('favorites').add({
+    'user_id': widget.userId,
+    'recipe_id': widget.recipe.id,
+    'recipe_name': widget.recipe.name,
+    'image_url': widget.recipe.imageUrl,
+    'timestamp': FieldValue.serverTimestamp(),
+  }).then((_) {
+    // Clearer success feedback
+    final snackBar = SnackBar(
+      content: Row(
+        children: [
+          Icon(Icons.check_circle, color: Colors.white),
+          SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: const [
+                Text(
+                  'Success!',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                Text(
+                  'Added to Favorites',
+                  style: TextStyle(
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+      backgroundColor: const Color.fromARGB(255, 51, 38, 88),
+      behavior: SnackBarBehavior.floating,
+      shape: RoundedRectangleBorder( 
+        borderRadius: BorderRadius.circular(10),
+      ),
+      duration: Duration(seconds: 3),
+    );
+
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+  }).catchError((error) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Failed to add to Favorites'),
+        backgroundColor: Colors.red,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+      ),
+    );
+  });
+}
+
 
   // Function to show the dialog for adding the meal schedule
   void _showAddToMealDialog(BuildContext context) {
@@ -362,17 +467,11 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                     'image_url': widget.recipe.imageUrl,
                     'created_at': FieldValue.serverTimestamp(),
                   }).then((_) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Added to Meal Plan'),
-                        backgroundColor: AppColors.primaryPurple,
-                        behavior: SnackBarBehavior.floating,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                    );
+                    // Close the dialog first
                     Navigator.pop(context);
+                    
+                    // Show a more prominent notification at the top
+                    _showSuccessNotification(context);
                   }).catchError((error) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
@@ -557,10 +656,18 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                       ),
                       SizedBox(height: 8),
                       Text(
-                        widget.recipe.instructions,
+                        widget.recipe.instructions
+                          .trim()
+                          .split('\n')
+                          .map((paragraph) => '\t$paragraph')
+                          .join('\n\n'), // adds space between paragraphs
+                        textAlign: TextAlign.justify,
                         style: TextStyle(
                           fontSize: 16,
                           height: 1.5,
+                          fontFamily: 'Poppins', 
+                          fontWeight: FontWeight.normal,
+                          fontStyle: FontStyle.normal,
                           color: isDarkMode ? Colors.grey[300] : Colors.black87,
                         ),
                       ),
