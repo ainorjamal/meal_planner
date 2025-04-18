@@ -8,6 +8,7 @@ import 'recipe_detail_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'calendar_screen.dart';
 import 'user_profile_screen.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class RecipesScreen extends StatefulWidget {
   @override
@@ -39,21 +40,93 @@ class _RecipesScreenState extends State<RecipesScreen> {
       final data = json.decode(response.body);
       final meals = data['meals'] ?? [];
 
+      final fetchedRecipes =
+          meals.map<Recipe>((meal) => Recipe.fromJson(meal)).toList();
+
+      if (userId != null) {
+        final favSnapshot = await FirebaseFirestore.instance
+            .collection('favorites')
+            .where('user_id', isEqualTo: userId)
+            .get();
+
+        final favIds = favSnapshot.docs.map((doc) => doc['recipe_id']).toSet();
+
+        for (var recipe in fetchedRecipes) {
+          recipe.isFavorite = favIds.contains(recipe.id);
+        }
+      }
+
       setState(() {
-        _recipes = meals.map<Recipe>((meal) => Recipe.fromJson(meal)).toList();
+        _recipes = fetchedRecipes;
       });
     } else {
       print('Failed to load recipes');
     }
   }
 
-  void _toggleFavorite(String recipeId) {
-    setState(() {
-      final index = _recipes.indexWhere((recipe) => recipe.id == recipeId);
-      if (index != -1) {
-        _recipes[index].isFavorite = !_recipes[index].isFavorite;
+
+  void _toggleFavorite(String recipeId) async {
+    final index = _recipes.indexWhere((recipe) => recipe.id == recipeId);
+    if (index == -1 || userId == null) return;
+
+    final recipe = _recipes[index];
+    final favRef = FirebaseFirestore.instance.collection('favorites');
+
+    // Check if it's already in favorites
+    final snapshot = await favRef
+        .where('user_id', isEqualTo: userId)
+        .where('recipe_id', isEqualTo: recipeId)
+        .get();
+
+    if (recipe.isFavorite) {
+      // 🔴 Remove from favorites
+      for (var doc in snapshot.docs) {
+        await doc.reference.delete();
       }
-    });
+      setState(() {
+        _recipes[index].isFavorite = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('${recipe.name} removed from Favorites'),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+      );
+    } else if (snapshot.docs.isNotEmpty) {
+      // 🟡 Already in favorites (shouldn’t happen if logic is synced, but just in case)
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('${recipe.name} is already in Favorites'),
+          backgroundColor: Colors.orange,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+      );
+    } else {
+      // 🟢 Add to favorites
+      await favRef.add({
+        'user_id': userId,
+        'recipe_id': recipe.id,
+        'recipe_name': recipe.name,
+        'image_url': recipe.imageUrl,
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+
+      setState(() {
+        _recipes[index].isFavorite = true;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('${recipe.name} added to Favorites'),
+          backgroundColor: const Color.fromARGB(255, 51, 38, 88),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+      );
+    }
   }
 
   @override
@@ -80,18 +153,17 @@ class _RecipesScreenState extends State<RecipesScreen> {
                 _selectedCategory = newCategory!;
               });
             },
-            items:
-                [
-                  'All',
-                  'Vegan',
-                  'Vegetarian',
-                  'Non-Vegetarian',
-                ].map<DropdownMenuItem<String>>((category) {
-                  return DropdownMenuItem<String>(
-                    value: category,
-                    child: Text(category),
-                  );
-                }).toList(),
+            items: [
+              'All',
+              'Vegan',
+              'Vegetarian',
+              'Non-Vegetarian',
+            ].map<DropdownMenuItem<String>>((category) {
+              return DropdownMenuItem<String>(
+                value: category,
+                child: Text(category),
+              );
+            }).toList(),
           ),
         ],
       ),
@@ -104,11 +176,10 @@ class _RecipesScreenState extends State<RecipesScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder:
-                        (context) => RecipeDetailScreen(
-                          recipe: filteredRecipes[index],
-                          userId: userId!,
-                        ),
+                    builder: (context) => RecipeDetailScreen(
+                      recipe: filteredRecipes[index],
+                      userId: userId!,
+                    ),
                   ),
                 );
               } else {
@@ -120,8 +191,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
             },
             child: RecipeCard(
               recipe: filteredRecipes[index],
-              onFavoriteToggle:
-                  () => _toggleFavorite(filteredRecipes[index].id),
+              onFavoriteToggle: () => _toggleFavorite(filteredRecipes[index].id),
             ),
           );
         },

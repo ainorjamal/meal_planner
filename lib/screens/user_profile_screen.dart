@@ -8,6 +8,7 @@ import 'package:meal_planner/pages/home_screen.dart';
 import '../auth/auth_service.dart';
 import '../screens/calendar_screen.dart';
 import '../screens/recipes_screen.dart';
+import '../pages/mealHistory_screen.dart';
 
 // Centralized color palette for app-wide consistency
 class AppColors {
@@ -482,8 +483,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     );
   }
 
-  // Statistics section
-  Widget _buildStatisticsSection() {
+    // Statistics section
+    Widget _buildStatisticsSection() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
@@ -514,20 +515,35 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           ),
           SizedBox(height: 10),
 
-          // User stats cards in grid
-          GridView.count(
-            crossAxisCount: 2,
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
-            childAspectRatio: 1.3,
-            shrinkWrap: true,
-            physics: NeverScrollableScrollPhysics(),
-            children: [
-              _buildStatCard('Total Meals', '42', Icons.restaurant),
-              _buildStatCard('Favorites', '7', Icons.favorite),
-              _buildStatCard('This Week', '12', Icons.calendar_today),
-              _buildStatCard('Streak', '5 days', Icons.local_fire_department),
-            ],
+          // Fetch statistics dynamically
+          FutureBuilder<Map<String, dynamic>>(
+            future: _fetchUserStatistics(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return Center(child: CircularProgressIndicator());
+              }
+
+              if (snapshot.hasError) {
+                return Center(child: Text('Error: ${snapshot.error}'));
+              }
+
+              final stats = snapshot.data ?? {};
+
+              return GridView.count(
+                crossAxisCount: 2,
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
+                childAspectRatio: 1.3,
+                shrinkWrap: true,
+                physics: NeverScrollableScrollPhysics(),
+                children: [
+                  _buildStatCard('Total Meals', stats['totalMeals'].toString(), Icons.restaurant),
+                  _buildStatCard('Favorites', stats['favorites'].toString(), Icons.favorite),
+                  _buildStatCard('This Week', stats['thisWeek'].toString(), Icons.calendar_today),
+                  _buildStatCard('Streak', stats['streak'].toString(), Icons.local_fire_department),
+                ],
+              );
+            },
           ),
 
           SizedBox(height: 24),
@@ -580,7 +596,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             title: 'Meal History',
             subtitle: 'Past meals and analytics',
             onTap: () {
-              // Navigate to meal history screen
+              Navigator.pushNamed(context, '/mealHistory');
             },
           ),
           _buildSettingsItem(
@@ -1205,6 +1221,88 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       ),
     );
   }
+
+Future<Map<String, dynamic>> _fetchUserStatistics() async {
+  try {
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+    if (userId == null) {
+      return {
+        'totalMeals': 0,
+        'favorites': 0,
+        'thisWeek': 0,
+      };
+    }
+
+    // Fetch total meals for both 'user_id' and 'userId'
+    final mealsSnapshot1 = await FirebaseFirestore.instance
+        .collection('meals')
+        .where('user_id', isEqualTo: userId)
+        .get();
+
+    final mealsSnapshot2 = await FirebaseFirestore.instance
+        .collection('meals')
+        .where('userId', isEqualTo: userId)
+        .get();
+
+    print("mealSnapshot1 docs: ${mealsSnapshot1.docs.length}");
+    print("mealSnapshot2 docs: ${mealsSnapshot2.docs.length}");
+
+    // Fetch favorites for both 'user_id' and 'userId'
+    final favoritesSnapshot1 = await FirebaseFirestore.instance
+        .collection('favorites')
+        .where('user_id', isEqualTo: userId)
+        .get();
+
+    final favoritesSnapshot2 = await FirebaseFirestore.instance
+        .collection('favorites')
+        .where('userId', isEqualTo: userId)
+        .get();
+
+    print("favoritesSnapshot1 docs: ${favoritesSnapshot1.docs.length}");
+    print("favoritesSnapshot2 docs: ${favoritesSnapshot2.docs.length}");
+
+    // Fetch meals from this week for both 'user_id' and 'userId'
+    final startOfWeek = DateTime.now().subtract(Duration(days: DateTime.now().weekday - 1));
+    
+    final mealsThisWeekSnapshot1 = await FirebaseFirestore.instance
+        .collection('meals')
+        .where('user_id', isEqualTo: userId)
+        .where('date', isGreaterThanOrEqualTo: startOfWeek)
+        .get();
+
+    final mealsThisWeekSnapshot2 = await FirebaseFirestore.instance
+        .collection('meals')
+        .where('userId', isEqualTo: userId)
+        .where('date', isGreaterThanOrEqualTo: startOfWeek)
+        .get();
+
+    print("mealsThisWeekSnapshot1 docs: ${mealsThisWeekSnapshot1.docs.length}");
+    print("mealsThisWeekSnapshot2 docs: ${mealsThisWeekSnapshot2.docs.length}");
+
+    // Combine the results of the snapshots for both 'user_id' and 'userId'
+    final totalMeals = mealsSnapshot1.docs.length + mealsSnapshot2.docs.length;
+    final totalFavorites = favoritesSnapshot1.docs.length + favoritesSnapshot2.docs.length;
+    final totalThisWeek = mealsThisWeekSnapshot1.docs.length + mealsThisWeekSnapshot2.docs.length;
+
+    print("Total Meals: $totalMeals");
+    print("Total Favorites: $totalFavorites");
+    print("Total Meals This Week: $totalThisWeek");
+
+    return {
+      'totalMeals': totalMeals,
+      'favorites': totalFavorites,
+      'thisWeek': totalThisWeek,
+    };
+  } catch (e) {
+    print('Error fetching statistics: $e');
+    return {
+      'totalMeals': 0,
+      'favorites': 0,
+      'thisWeek': 0,
+    };
+  }
+}
+
 
   // Update user profile in Firestore
   Future<void> _updateUserProfile(

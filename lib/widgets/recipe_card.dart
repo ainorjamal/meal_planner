@@ -22,12 +22,14 @@ class RecipeCard extends StatelessWidget {
           height: 50,
           fit: BoxFit.cover,
         ),
-        title: Text(recipe.name), // 🟢 Use 'name' instead of 'title'
-        subtitle: Text(recipe.category), // 🟢 Or strInstructions if you add it
+        title: Text(recipe.name), // Use 'name' instead of 'title'
+        subtitle: Text(recipe.category), // Or strInstructions if you add it
         trailing: IconButton(
           icon: Icon(
             recipe.isFavorite ? Icons.favorite : Icons.favorite_border,
-            color: recipe.isFavorite ? Colors.red : null,
+            color: recipe.isFavorite
+              ? Color(0xFF3B2068) // Dark purple
+              : Theme.of(context).iconTheme.color,
           ),
           onPressed: onFavoriteToggle,
         ),

@@ -7,6 +7,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../screens/recipes_screen.dart';
 import '../screens/user_profile_screen.dart';
 import '../services/firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 // Custom color palette
 class AppColors {
@@ -44,61 +45,117 @@ class _CalendarScreenState extends State<CalendarScreen> {
     _loadMeals();
   }
 
-  // Load meals from Firestore
-  Future<void> _loadMeals() async {
-    setState(() {
-      _isLoading = true;
-    });
+ Future<void> _loadMeals() async {
+  setState(() {
+    _isLoading = true;
+  });
 
-    try {
-      // Listen to meals collection stream
-      _firestoreService.getMeals().listen((mealsSnapshot) {
-        final Map<DateTime, List<MealEvent>> newEvents = {};
+  try {
+    // Get the current user ID
+    final String? userId = FirebaseAuth.instance.currentUser?.uid;
 
-        for (var doc in mealsSnapshot.docs) {
-          final data = doc.data() as Map<String, dynamic>;
-          final id = doc.id;
-          data['id'] = id; // Add document ID to the data
-
-          if (data['date'] != null) {
-            // Convert Firestore Timestamp to DateTime
-            final DateTime mealDate = (data['date'] as Timestamp).toDate();
-            // Normalize date by removing time part
-            final DateTime normalizedDate = DateTime(
-              mealDate.year,
-              mealDate.month,
-              mealDate.day,
-            );
-
-            // Create a MealEvent from Firestore data
-            final MealEvent event = MealEvent(
-              data['mealType'] ?? 'Unknown',
-              data['title'] ?? 'Unnamed Meal',
-              data['time'] ?? '--:--',
-              data, // Store the full data for later use
-            );
-
-            // Add to events map
-            if (newEvents[normalizedDate] == null) {
-              newEvents[normalizedDate] = [];
-            }
-            newEvents[normalizedDate]!.add(event);
-          }
-        }
-
-        // Update state with new events
-        setState(() {
-          _mealEvents = newEvents;
-          _isLoading = false;
-        });
-      });
-    } catch (e) {
-      print('Error loading meals: $e');
+    if (userId == null) {
+      // Handle case where user is not logged in
       setState(() {
         _isLoading = false;
       });
+      return;
+    }
+
+    // Listen to meals collection stream for both 'user_id' and 'userId'
+    final mealStream1 = FirebaseFirestore.instance
+        .collection('meals')
+        .where('user_id', isEqualTo: userId)
+        .snapshots();
+
+    final mealStream2 = FirebaseFirestore.instance
+        .collection('meals')
+        .where('userId', isEqualTo: userId)
+        .snapshots();
+
+    // Create a list to store combined meal data
+    List<DocumentSnapshot> combinedDocs = [];
+
+    // Listen to mealStream1
+    mealStream1.listen((mealSnapshot) {
+      print("mealStream1 docs: ${mealSnapshot.docs.length}");
+      if (mealSnapshot.docs.isEmpty) {
+        print("No documents found in mealStream1 for userId: $userId");
+      } else {
+        mealSnapshot.docs.forEach((doc) {
+          print("Found document in mealStream1: ${doc.id}");
+          combinedDocs.add(doc); // Add to the combined list
+        });
+      }
+
+      // Now update the UI with the combined data
+      _updateMealEvents(combinedDocs);
+    });
+
+    // Listen to mealStream2
+    mealStream2.listen((mealSnapshot) {
+      print("mealStream2 docs: ${mealSnapshot.docs.length}");
+      if (mealSnapshot.docs.isEmpty) {
+        print("No documents found in mealStream2 for userId: $userId");
+      } else {
+        mealSnapshot.docs.forEach((doc) {
+          print("Found document in mealStream2: ${doc.id}");
+          combinedDocs.add(doc); // Add to the combined list
+        });
+      }
+
+      // Now update the UI with the combined data
+      _updateMealEvents(combinedDocs);
+    });
+  } catch (e) {
+    print('Error loading meals: $e');
+    setState(() {
+      _isLoading = false;
+    });
+  }
+}
+
+void _updateMealEvents(List<DocumentSnapshot> docs) {
+  final Map<DateTime, List<MealEvent>> newEvents = {};
+
+  for (var doc in docs) {
+    final data = doc.data() as Map<String, dynamic>;
+    final id = doc.id;
+    data['id'] = id; // Add document ID to the data
+
+    if (data['date'] != null) {
+      // Convert Firestore Timestamp to DateTime
+      final DateTime mealDate = (data['date'] as Timestamp).toDate();
+      // Normalize date by removing time part
+      final DateTime normalizedDate = DateTime(
+        mealDate.year,
+        mealDate.month,
+        mealDate.day,
+      );
+
+      // Create a MealEvent from Firestore data
+      final MealEvent event = MealEvent(
+        data['mealType'] ?? 'Unknown',
+        data['title'] ?? 'Unnamed Meal',
+        data['time'] ?? '--:--',
+        data, // Store the full data for later use
+      );
+
+      // Add to events map
+      if (newEvents[normalizedDate] == null) {
+        newEvents[normalizedDate] = [];
+      }
+      newEvents[normalizedDate]!.add(event);
     }
   }
+
+  // Update state with new events
+  setState(() {
+    _mealEvents = newEvents;
+    _isLoading = false;
+  });
+}
+
 
   List<MealEvent> _getEventsForDay(DateTime day) {
     // Normalize date to remove time part for comparison
