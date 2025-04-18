@@ -173,7 +173,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           child: Column(
             children: [
               _buildProfileHeader(userName, userEmail, photoUrl),
-              _buildStatisticsSection(),
               _buildSettingsSection(),
               _buildAccountSection(),
               SizedBox(height: 32),
@@ -483,63 +482,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   }
 
   // Statistics section
-  Widget _buildStatisticsSection() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Statistics',
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: _isDarkMode ? Colors.white : AppColors.darkPurple,
-                ),
-              ),
-              TextButton.icon(
-                icon: Icon(Icons.bar_chart, size: 18),
-                label: Text('View All'),
-                onPressed: () {
-                  // Navigate to detailed statistics
-                },
-                style: TextButton.styleFrom(
-                  foregroundColor: AppColors.secondaryPurple,
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: 10),
-
-          // User stats cards in grid
-          GridView.count(
-            crossAxisCount: 2,
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
-            childAspectRatio: 1.3,
-            shrinkWrap: true,
-            physics: NeverScrollableScrollPhysics(),
-            children: [
-              _buildStatCard('Total Meals', '42', Icons.restaurant),
-              _buildStatCard('Favorites', '7', Icons.favorite),
-              _buildStatCard('This Week', '12', Icons.calendar_today),
-              _buildStatCard('Streak', '5 days', Icons.local_fire_department),
-            ],
-          ),
-
-          SizedBox(height: 24),
-          Divider(
-            color: _isDarkMode ? Colors.grey.shade700 : Colors.grey.shade300,
-            thickness: 1,
-          ),
-          SizedBox(height: 12),
-        ],
-      ),
-    );
-  }
 
   // Settings section
   Widget _buildSettingsSection() {
@@ -642,60 +584,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   }
 
   // Redesigned stat card with better animations and shadows
-  Widget _buildStatCard(String title, String value, IconData icon) {
-    return Card(
-      elevation: 4,
-      shadowColor: AppColors.primaryPurple.withOpacity(0.3),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              _isDarkMode ? Colors.grey.shade800 : Colors.white,
-              _isDarkMode
-                  ? Colors.grey.shade900.withOpacity(0.8)
-                  : Colors.white.withOpacity(0.9),
-            ],
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.primaryPurple.withOpacity(0.1),
-              blurRadius: 8,
-              offset: Offset(0, 3),
-            ),
-          ],
-        ),
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 36, color: AppColors.secondaryPurple),
-            SizedBox(height: 8),
-            Text(
-              value,
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: _isDarkMode ? Colors.white : AppColors.darkPurple,
-              ),
-            ),
-            SizedBox(height: 4),
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 14,
-                color:
-                    _isDarkMode ? Colors.grey.shade400 : Colors.grey.shade600,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   // Settings item with improved design and ripple effect
   Widget _buildSettingsItem({
