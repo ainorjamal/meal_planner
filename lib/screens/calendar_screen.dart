@@ -7,6 +7,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../screens/recipes_screen.dart';
 import '../screens/user_profile_screen.dart';
 import '../services/firestore.dart';
+import '../screens/add_meal_screen.dart';
 
 // Custom color palette
 class AppColors {
@@ -322,7 +323,35 @@ class _CalendarScreenState extends State<CalendarScreen> {
   }
 
   // Navigate to AddMealScreen with preselected date
-  void _navigateToAddMeal([Map<String, dynamic>? mealToEdit]) async {}
+  // Replace the empty _navigateToAddMeal() method in your _CalendarScreenState class with this:
+  void _navigateToAddMeal([Map<String, dynamic>? mealToEdit]) async {
+    // Navigate to the existing AddMealScreen
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder:
+            (context) => AddMealScreen(
+              mealToEdit: mealToEdit,
+              preselectedDate: _selectedDay,
+            ),
+      ),
+    );
+
+    // If we got a positive result (meal added/updated), show a confirmation
+    if (result == true) {
+      // No need to call _loadMeals() since we have a listener in initState
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(mealToEdit != null ? 'Meal updated' : 'Meal added'),
+          backgroundColor: AppColors.primaryPurple,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
+  // Add this import at the top of the calendar_screen.dart file:
+  // import 'package:meal_planner/screens/add_meal_screen.dart';
 
   Widget _buildEventList(bool isDarkMode) {
     final events = _getEventsForDay(_selectedDay!);
