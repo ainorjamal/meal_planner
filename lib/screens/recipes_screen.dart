@@ -64,7 +64,6 @@ class _RecipesScreenState extends State<RecipesScreen> {
     }
   }
 
-
   void _toggleFavorite(String recipeId) async {
     final index = _recipes.indexWhere((recipe) => recipe.id == recipeId);
     if (index == -1 || userId == null) return;
@@ -135,11 +134,11 @@ class _RecipesScreenState extends State<RecipesScreen> {
     _isDarkMode = Theme.of(context).brightness == Brightness.dark;
     primaryColor = Theme.of(context).primaryColor;
 
-    final filteredRecipes =
-        _recipes.where((recipe) {
-          return _selectedCategory == 'All' ||
-              recipe.category == _selectedCategory;
-        }).toList();
+    // Filter recipes based on selected category
+    final filteredRecipes = _recipes.where((recipe) {
+      return _selectedCategory == 'All' ||
+          recipe.category == _selectedCategory;
+    }).toList();
 
     return Scaffold(
       appBar: AppBar(
@@ -155,9 +154,16 @@ class _RecipesScreenState extends State<RecipesScreen> {
             },
             items: [
               'All',
-              'Vegan',
+              'Miscellaneous',
+              'Seafood',
+              'Side',
               'Vegetarian',
-              'Non-Vegetarian',
+              'Beef',
+              'Pork',
+              'Pasta',
+              'Dessert',
+              'Lamb',
+              'Chicken',
             ].map<DropdownMenuItem<String>>((category) {
               return DropdownMenuItem<String>(
                 value: category,

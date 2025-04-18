@@ -8,7 +8,8 @@ import 'package:meal_planner/pages/home_screen.dart';
 import '../auth/auth_service.dart';
 import '../screens/calendar_screen.dart';
 import '../screens/recipes_screen.dart';
-import '../pages/mealHistory_screen.dart';
+import 'package:provider/provider.dart'; 
+import '/providers/theme_provider.dart'; 
 
 // Centralized color palette for app-wide consistency
 class AppColors {
@@ -174,6 +175,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           child: Column(
             children: [
               _buildProfileHeader(userName, userEmail, photoUrl),
+               _buildStatisticsSection(),
               _buildSettingsSection(),
               _buildAccountSection(),
               SizedBox(height: 32),
@@ -284,83 +286,91 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   }
 
   // Redesigned Profile header section
-  Widget _buildProfileHeader(
-    String userName,
-    String userEmail,
-    String photoUrl,
-  ) {
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(30),
-          bottomRight: Radius.circular(30),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black12,
-            blurRadius: 10,
-            offset: Offset(0, 5),
+    Widget _buildProfileHeader(
+      String userName,
+      String userEmail,
+      String photoUrl,
+    ) {
+      // Accessing the ThemeProvider to check if dark mode is enabled
+      final themeProvider = Provider.of<ThemeProvider>(context);
+
+      // Adjust the background color based on the theme
+      Color headerBackgroundColor = themeProvider.isDarkMode ? Colors.black : Colors.white;
+      Color profileTextColor = themeProvider.isDarkMode ? Colors.white : AppColors.primaryPurple;
+      Color emailTextColor = themeProvider.isDarkMode ? Colors.white70 : AppColors.secondaryPurple;
+      Color buttonColor = themeProvider.isDarkMode ? AppColors.primaryPurple.withOpacity(0.8) : AppColors.primaryPurple;
+
+      return Container(
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: headerBackgroundColor, // Dynamic color based on theme
+          borderRadius: BorderRadius.only(
+            bottomLeft: Radius.circular(30),
+            bottomRight: Radius.circular(30),
           ),
-        ],
-      ),
-      margin: EdgeInsets.only(bottom: 20),
-      child: Column(
-        children: [
-          // Top purple arc background
-          Container(
-            height: 120,
-            width: double.infinity,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [AppColors.primaryPurple, AppColors.secondaryPurple],
-              ),
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(80),
-                bottomRight: Radius.circular(80),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black12,
+              blurRadius: 10,
+              offset: Offset(0, 5),
+            ),
+          ],
+        ),
+        margin: EdgeInsets.only(bottom: 20),
+        child: Column(
+          children: [
+            // Top purple arc background
+            Container(
+              height: 120,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [AppColors.primaryPurple, AppColors.secondaryPurple],
+                ),
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(80),
+                  bottomRight: Radius.circular(80),
+                ),
               ),
             ),
-          ),
 
-          // Profile content with overlapping avatar
-          Container(
-            transform: Matrix4.translationValues(0, -60, 0),
-            child: Column(
-              children: [
-                // Profile picture with elevated card effect
-                Container(
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white,
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.primaryPurple.withOpacity(0.3),
-                        blurRadius: 15,
-                        spreadRadius: 2,
-                      ),
-                    ],
-                  ),
-                  padding: EdgeInsets.all(4),
-                  child: GestureDetector(
-                    onTap: () {
-                      // Show options to change profile picture
-                      _showChangePhotoOptions();
-                    },
-                    child: Stack(
-                      alignment: Alignment.bottomRight,
-                      children: [
-                        Hero(
-                          tag: 'profile-pic',
-                          child:
-                              photoUrl.isNotEmpty
-                                  ? CircleAvatar(
+            // Profile content with overlapping avatar
+            Container(
+              transform: Matrix4.translationValues(0, -60, 0),
+              child: Column(
+                children: [
+                  // Profile picture with elevated card effect
+                  Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white,
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primaryPurple.withOpacity(0.3),
+                          blurRadius: 15,
+                          spreadRadius: 2,
+                        ),
+                      ],
+                    ),
+                    padding: EdgeInsets.all(4),
+                    child: GestureDetector(
+                      onTap: () {
+                        // Show options to change profile picture
+                        _showChangePhotoOptions();
+                      },
+                      child: Stack(
+                        alignment: Alignment.bottomRight,
+                        children: [
+                          Hero(
+                            tag: 'profile-pic',
+                            child: photoUrl.isNotEmpty
+                                ? CircleAvatar(
                                     radius: 60,
                                     backgroundImage: NetworkImage(photoUrl),
                                   )
-                                  : CircleAvatar(
+                                : CircleAvatar(
                                     radius: 60,
                                     backgroundColor: AppColors.lightPurple,
                                     child: Icon(
@@ -369,118 +379,156 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                                       color: AppColors.primaryPurple,
                                     ),
                                   ),
-                        ),
-                        // Camera icon for changing photo - restyled
-                        Container(
-                          padding: EdgeInsets.all(5),
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [
-                                AppColors.primaryPurple,
-                                AppColors.secondaryPurple,
-                              ],
+                          ),
+                          // Camera icon for changing photo - restyled
+                          Container(
+                            padding: EdgeInsets.all(5),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [
+                                  AppColors.primaryPurple,
+                                  AppColors.secondaryPurple,
+                                ],
+                              ),
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white, width: 2),
                             ),
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white, width: 2),
+                            child: Icon(
+                              Icons.camera_alt,
+                              color: Colors.white,
+                              size: 16,
+                            ),
                           ),
-                          child: Icon(
-                            Icons.camera_alt,
-                            color: Colors.white,
-                            size: 16,
+                        ],
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 16),
+
+                  // User info card
+                  Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ), // tighter all around
+                    width: double.infinity,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        // User name
+                        Text(
+                          userName,
+                          style: TextStyle(
+                            fontSize: 21, // smaller font
+                            fontWeight: FontWeight.w600,
+                            color: profileTextColor, // Adjust color based on theme
+                            letterSpacing: 0.3,
                           ),
                         ),
+                        SizedBox(height: 2), // super tight spacing
+                        // User email
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color.fromARGB(
+                              255,
+                              253,
+                              253,
+                              253,
+                            ).withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            userEmail,
+                            style: TextStyle(
+                              fontSize: 16, // smaller font
+                              color: emailTextColor, // Adjust color based on theme
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: 8), // very compact
+                        // Edit profile button
+                        SizedBox(
+                          width: 180,
+                          child: ElevatedButton.icon(
+                            icon: Icon(
+                              Icons.edit_outlined,
+                              size: 19,
+                            ), // smaller icon
+                            label: Text(
+                              'Edit Profile',
+                              style: TextStyle(fontSize: 18), // smaller font
+                            ),
+                            onPressed: () => _showEditProfileDialog(context, userName),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: buttonColor, // Adjust button color
+                              foregroundColor: Colors.white,
+                              padding: EdgeInsets.symmetric(
+                                vertical: 7,
+                              ), // tighter vertical
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: 3), // minimal space at the bottom
                       ],
                     ),
                   ),
-                ),
-                SizedBox(height: 16),
-
-                // User info card
-                Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 10,
-                  ), // tighter all around
-                  width: double.infinity,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      // User name
-                      Text(
-                        userName,
-                        style: TextStyle(
-                          fontSize: 21, // smaller font
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.primaryPurple,
-                          letterSpacing: 0.3,
-                        ),
-                      ),
-                      SizedBox(height: 2), // super tight spacing
-                      // User email
-                      Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: const Color.fromARGB(
-                            255,
-                            253,
-                            253,
-                            253,
-                          ).withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          userEmail,
-                          style: TextStyle(
-                            fontSize: 16, // smaller font
-                            color: AppColors.secondaryPurple,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                      SizedBox(height: 8), // very compact
-                      // Edit profile button
-                      SizedBox(
-                        width: 180,
-                        child: ElevatedButton.icon(
-                          icon: Icon(
-                            Icons.edit_outlined,
-                            size: 19,
-                          ), // smaller icon
-                          label: Text(
-                            'Edit Profile',
-                            style: TextStyle(fontSize: 18), // smaller font
-                          ),
-                          onPressed:
-                              () => _showEditProfileDialog(context, userName),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primaryPurple,
-                            foregroundColor: Colors.white,
-                            padding: EdgeInsets.symmetric(
-                              vertical: 7,
-                            ), // tighter vertical
-                            elevation: 0,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                        ),
-                      ),
-                      SizedBox(height: 3), // minimal space at the bottom
-                    ],
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
+          ],
+        ),
+      );
+    }
+
+     // Redesigned stat card with better animations and shadows
+    Widget _buildStatCard(String title, String value, IconData icon) {
+      return Container(
+        padding: EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: _isDarkMode ? Colors.grey[850] : Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            if (!_isDarkMode)
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.2),
+                spreadRadius: 1,
+                blurRadius: 5,
+                offset: Offset(0, 3),
+              ),
+          ],
+        ),
+        child: Center( // Centers the entire Column within the container
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center, // Vertical centering
+            crossAxisAlignment: CrossAxisAlignment.center, // Horizontal centering
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 30, color: AppColors.secondaryPurple),
+              SizedBox(height: 12),
+              Text(
+                value,
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+              ),
+              Text(
+                title,
+                style: TextStyle(fontSize: 14, color: Colors.grey),
+              ),
+            ],
           ),
-        ],
-      ),
-    );
-  }
+        ),
+      );
+    }
 
     // Statistics section
     Widget _buildStatisticsSection() {
@@ -579,7 +627,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             title: 'App Settings',
             subtitle: 'Theme, notifications, preferences',
             onTap: () {
-              // Navigate to settings screen
+               Navigator.pushNamed(context, '/settings');
             },
           ),
           _buildSettingsItem(
@@ -603,7 +651,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             title: 'Help & Support',
             subtitle: 'FAQs, contact support',
             onTap: () {
-              // Navigate to help screen
+              Navigator.pushNamed(context, '/helpSupport');
             },
           ),
           SizedBox(height: 12),
@@ -655,8 +703,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       ),
     );
   }
-
-  // Redesigned stat card with better animations and shadows
 
   // Settings item with improved design and ripple effect
   Widget _buildSettingsItem({
@@ -1178,7 +1224,7 @@ Future<Map<String, dynamic>> _fetchUserStatistics() async {
       };
     }
 
-    // Fetch total meals for both 'user_id' and 'userId'
+    // Fetch total meals based on 'user_id' or 'userId'
     final mealsSnapshot1 = await FirebaseFirestore.instance
         .collection('meals')
         .where('user_id', isEqualTo: userId)
@@ -1192,21 +1238,15 @@ Future<Map<String, dynamic>> _fetchUserStatistics() async {
     print("mealSnapshot1 docs: ${mealsSnapshot1.docs.length}");
     print("mealSnapshot2 docs: ${mealsSnapshot2.docs.length}");
 
-    // Fetch favorites for both 'user_id' and 'userId'
-    final favoritesSnapshot1 = await FirebaseFirestore.instance
+    // Fetch favorites based only on 'user_id' (removed userId field)
+    final favoritesSnapshot = await FirebaseFirestore.instance
         .collection('favorites')
         .where('user_id', isEqualTo: userId)
         .get();
 
-    final favoritesSnapshot2 = await FirebaseFirestore.instance
-        .collection('favorites')
-        .where('userId', isEqualTo: userId)
-        .get();
+    print("favoritesSnapshot docs: ${favoritesSnapshot.docs.length}");
 
-    print("favoritesSnapshot1 docs: ${favoritesSnapshot1.docs.length}");
-    print("favoritesSnapshot2 docs: ${favoritesSnapshot2.docs.length}");
-
-    // Fetch meals from this week for both 'user_id' and 'userId'
+    // Fetch meals from this week based on 'user_id' or 'userId'
     final startOfWeek = DateTime.now().subtract(Duration(days: DateTime.now().weekday - 1));
     
     final mealsThisWeekSnapshot1 = await FirebaseFirestore.instance
@@ -1224,9 +1264,9 @@ Future<Map<String, dynamic>> _fetchUserStatistics() async {
     print("mealsThisWeekSnapshot1 docs: ${mealsThisWeekSnapshot1.docs.length}");
     print("mealsThisWeekSnapshot2 docs: ${mealsThisWeekSnapshot2.docs.length}");
 
-    // Combine the results of the snapshots for both 'user_id' and 'userId'
+    // Combine the results of the snapshots for 'user_id' and 'userId'
     final totalMeals = mealsSnapshot1.docs.length + mealsSnapshot2.docs.length;
-    final totalFavorites = favoritesSnapshot1.docs.length + favoritesSnapshot2.docs.length;
+    final totalFavorites = favoritesSnapshot.docs.length;
     final totalThisWeek = mealsThisWeekSnapshot1.docs.length + mealsThisWeekSnapshot2.docs.length;
 
     print("Total Meals: $totalMeals");
@@ -1247,7 +1287,6 @@ Future<Map<String, dynamic>> _fetchUserStatistics() async {
     };
   }
 }
-
 
   // Update user profile in Firestore
   Future<void> _updateUserProfile(
