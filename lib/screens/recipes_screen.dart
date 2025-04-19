@@ -695,7 +695,7 @@ class RecipeSearchDelegate extends SearchDelegate<String> {
                     fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) {
                       return Container(
-                        color: Colors.grey.shade300,
+                        color: const Color.fromARGB(255, 116, 77, 110),
                         child: Icon(
                           Icons.broken_image,
                           color: Colors.grey.shade600,
