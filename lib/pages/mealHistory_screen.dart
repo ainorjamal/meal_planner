@@ -131,9 +131,6 @@ class _MealHistoryScreenState extends State<MealHistoryScreen> with SingleTicker
         backgroundColor: AppColors.primaryPurple,
         elevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(
-            bottom: Radius.circular(20),
-          ),
         ),
         automaticallyImplyLeading: true,
         leading: IconButton(
@@ -141,9 +138,16 @@ class _MealHistoryScreenState extends State<MealHistoryScreen> with SingleTicker
           onPressed: () => Navigator.of(context).pop(),
         ),
         actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 8.0),
-            child: Icon(Icons.history_rounded, color: AppColors.textLight),
+          Container(
+            margin: EdgeInsets.only(right: 16),
+            decoration: BoxDecoration(
+              color: AppColors.darkPurple.withOpacity(0.2),
+              shape: BoxShape.circle,
+            ),
+            child: IconButton(
+              icon: Icon(Icons.history_rounded, color: AppColors.textLight),
+              onPressed: () {},
+            ),
           ),
         ],
       ),
@@ -155,21 +159,48 @@ class _MealHistoryScreenState extends State<MealHistoryScreen> with SingleTicker
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  SizedBox(
-                    width: 60,
-                    height: 60,
-                    child: CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryPurple),
-                      strokeWidth: 5,
+                  Container(
+                    width: 80,
+                    height: 80,
+                    decoration: BoxDecoration(
+                      color: AppColors.ultraLightPurple,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primaryPurple.withOpacity(0.2),
+                          blurRadius: 20,
+                          spreadRadius: 1,
+                        )
+                      ]
+                    ),
+                    child: Center(
+                      child: SizedBox(
+                        width: 50,
+                        height: 50,
+                        child: CircularProgressIndicator(
+                          valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryPurple),
+                          strokeWidth: 4,
+                          backgroundColor: AppColors.lightPurple,
+                        ),
+                      ),
                     ),
                   ),
-                  SizedBox(height: 24),
+                  SizedBox(height: 30),
                   Text(
                     'Loading your meal history...',
                     style: TextStyle(
                       fontSize: 18,
-                      fontWeight: FontWeight.w500,
+                      fontWeight: FontWeight.w600,
                       color: AppColors.primaryPurple,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    'Please wait while we prepare your past meals',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: AppColors.textDark.withOpacity(0.7),
                     ),
                   ),
                 ],
@@ -180,40 +211,63 @@ class _MealHistoryScreenState extends State<MealHistoryScreen> with SingleTicker
           if (snapshot.hasError) {
             return Center(
               child: Container(
-                padding: EdgeInsets.all(20),
+                padding: EdgeInsets.all(24),
                 margin: EdgeInsets.symmetric(horizontal: 20),
                 decoration: BoxDecoration(
                   color: Colors.red.shade50,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.red.shade200)
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.red.shade200),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.red.shade100.withOpacity(0.5),
+                      blurRadius: 15,
+                      spreadRadius: 2,
+                    )
+                  ]
                 ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(
-                      Icons.error_outline_rounded,
-                      size: 60,
-                      color: Colors.red,
+                    Container(
+                      padding: EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.red.shade200.withOpacity(0.5),
+                            blurRadius: 10,
+                            spreadRadius: 1,
+                          )
+                        ]
+                      ),
+                      child: Icon(
+                        Icons.error_outline_rounded,
+                        size: 48,
+                        color: Colors.red.shade700,
+                      ),
                     ),
-                    SizedBox(height: 16),
+                    SizedBox(height: 20),
                     Text(
                       'Error Loading Meal History',
                       style: TextStyle(
                         color: Colors.red.shade900,
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
+                        letterSpacing: 0.5,
                       ),
                     ),
-                    SizedBox(height: 8),
+                    SizedBox(height: 12),
                     Text(
                       '${snapshot.error}',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: Colors.red.shade800,
                         fontSize: 16,
+                        height: 1.5,
                       ),
                     ),
-                    SizedBox(height: 16),
+                    SizedBox(height: 24),
                     ElevatedButton.icon(
                       onPressed: () {
                         setState(() {}); // Refresh the screen
@@ -221,9 +275,13 @@ class _MealHistoryScreenState extends State<MealHistoryScreen> with SingleTicker
                       icon: Icon(Icons.refresh),
                       label: Text('Try Again'),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red.shade100,
-                        foregroundColor: Colors.red.shade900,
-                        padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                        backgroundColor: Colors.white,
+                        foregroundColor: Colors.red.shade700,
+                        padding: EdgeInsets.symmetric(horizontal: 30, vertical: 14),
+                        elevation: 3,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
                       ),
                     ),
                   ],
@@ -237,44 +295,67 @@ class _MealHistoryScreenState extends State<MealHistoryScreen> with SingleTicker
           if (mealHistory.isEmpty) {
             return Center(
               child: Container(
-                padding: EdgeInsets.all(20),
+                width: MediaQuery.of(context).size.width * 0.85,
+                padding: EdgeInsets.all(28),
                 decoration: BoxDecoration(
-                  color: AppColors.ultraLightPurple,
-                  borderRadius: BorderRadius.circular(24),
+                  gradient: LinearGradient(
+                    colors: [AppColors.ultraLightPurple, Colors.white],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(28),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.cardShadow.withOpacity(0.3),
-                      blurRadius: 15,
+                      color: AppColors.cardShadow.withOpacity(0.4),
+                      blurRadius: 25,
                       spreadRadius: 5,
+                      offset: Offset(0, 10),
                     ),
                   ],
                 ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    SizedBox(
-                      height: 100,
-                      width: 100,
-                      child: Image.asset(
-                        'assets/empty_plate.png', // You would need to add this asset
-                        fit: BoxFit.contain,
-                        errorBuilder: (context, _, __) => Icon(
-                          Icons.restaurant_menu,
-                          size: 80,
-                          color: AppColors.secondaryPurple,
+                    Container(
+                      height: 120,
+                      width: 120,
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryPurple.withOpacity(0.1),
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.primaryPurple.withOpacity(0.2),
+                            blurRadius: 20,
+                            spreadRadius: 5,
+                            offset: Offset(0, 5),
+                          ),
+                        ],
+                      ),
+                      child: Center(
+                        child: Image.asset(
+                          'assets/empty_plate.png', // You would need to add this asset
+                          fit: BoxFit.contain,
+                          width: 80,
+                          height: 80,
+                          errorBuilder: (context, _, __) => Icon(
+                            Icons.restaurant_menu,
+                            size: 70,
+                            color: AppColors.primaryPurple,
+                          ),
                         ),
                       ),
                     ),
-                    SizedBox(height: 20),
+                    SizedBox(height: 24),
                     Text(
                       'No Meal History Yet',
                       style: TextStyle(
-                        fontSize: 24,
+                        fontSize: 26,
                         fontWeight: FontWeight.bold,
                         color: AppColors.darkPurple,
+                        letterSpacing: 0.5,
                       ),
                     ),
-                    SizedBox(height: 12),
+                    SizedBox(height: 16),
                     Text(
                       'Your past meals will appear here once they\'re completed.',
                       textAlign: TextAlign.center,
@@ -282,23 +363,46 @@ class _MealHistoryScreenState extends State<MealHistoryScreen> with SingleTicker
                         fontSize: 16,
                         color: AppColors.textDark.withOpacity(0.7),
                         height: 1.5,
+                        letterSpacing: 0.2,
                       ),
                     ),
-                    SizedBox(height: 24),
-                    ElevatedButton.icon(
-                      onPressed: () {
-                        Navigator.of(context).pop(); // Return to previous screen
-                      },
-                      icon: Icon(Icons.add_rounded),
-                      label: Text('Plan New Meals'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primaryPurple,
-                        foregroundColor: AppColors.textLight,
-                        elevation: 5,
-                        shadowColor: AppColors.darkPurple.withOpacity(0.5),
-                        padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30),
+                    SizedBox(height: 30),
+                    Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [AppColors.primaryPurple, AppColors.secondaryPurple],
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
+                        ),
+                        borderRadius: BorderRadius.circular(30),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.primaryPurple.withOpacity(0.4),
+                            blurRadius: 12,
+                            spreadRadius: 0,
+                            offset: Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: ElevatedButton.icon(
+                        onPressed: () {
+                          Navigator.of(context).pop(); // Return to previous screen
+                        },
+                        icon: Icon(Icons.add_rounded),
+                        label: Text('Plan New Meals'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          foregroundColor: AppColors.textLight,
+                          elevation: 0,
+                          padding: EdgeInsets.symmetric(horizontal: 30, vertical: 16),
+                          textStyle: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 0.5,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
                         ),
                       ),
                     ),
@@ -347,57 +451,64 @@ class _MealHistoryScreenState extends State<MealHistoryScreen> with SingleTicker
             slivers: [
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: EdgeInsets.fromLTRB(20, 20, 20, 10),
+                  padding: EdgeInsets.fromLTRB(20, 24, 20, 10),
                   child: Container(
-                    padding: EdgeInsets.all(16),
+                    padding: EdgeInsets.symmetric(vertical: 20, horizontal: 24),
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: [AppColors.primaryPurple, AppColors.secondaryPurple],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(20),
                       boxShadow: [
                         BoxShadow(
                           color: AppColors.darkPurple.withOpacity(0.3),
-                          offset: Offset(0, 4),
-                          blurRadius: 8,
+                          offset: Offset(0, 8),
+                          blurRadius: 20,
+                          spreadRadius: 0,
                         ),
                       ],
                     ),
                     child: Row(
                       children: [
                         Container(
-                          padding: EdgeInsets.all(12),
+                          padding: EdgeInsets.all(14),
                           decoration: BoxDecoration(
                             color: Colors.white.withOpacity(0.2),
                             shape: BoxShape.circle,
+                            border: Border.all(
+                              color: Colors.white.withOpacity(0.3),
+                              width: 2,
+                            ),
                           ),
                           child: Icon(
                             Icons.restaurant_rounded,
                             color: Colors.white,
-                            size: 30,
+                            size: 32,
                           ),
                         ),
-                        SizedBox(width: 16),
+                        SizedBox(width: 20),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Meal History',
+                                'Your Meal History',
                                 style: TextStyle(
                                   color: Colors.white,
-                                  fontSize: 18,
+                                  fontSize: 20,
                                   fontWeight: FontWeight.bold,
+                                  letterSpacing: 0.5,
                                 ),
                               ),
-                              SizedBox(height: 4),
+                              SizedBox(height: 6),
                               Text(
                                 'You have ${mealHistory.length} meals in your history',
                                 style: TextStyle(
                                   color: Colors.white.withOpacity(0.9),
                                   fontSize: 14,
+                                  letterSpacing: 0.2,
                                 ),
                               ),
                             ],
@@ -415,20 +526,44 @@ class _MealHistoryScreenState extends State<MealHistoryScreen> with SingleTicker
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Padding(
-                        padding: EdgeInsets.fromLTRB(20, 20, 20, 10),
+                        padding: EdgeInsets.fromLTRB(20, 24, 20, 12),
                         child: Container(
-                          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                           decoration: BoxDecoration(
-                            color: AppColors.accentPurple,
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Text(
-                            month,
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
+                            gradient: LinearGradient(
+                              colors: [AppColors.accentPurple, AppColors.secondaryPurple],
+                              begin: Alignment.centerLeft,
+                              end: Alignment.centerRight,
                             ),
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.accentPurple.withOpacity(0.3),
+                                blurRadius: 10,
+                                spreadRadius: 0,
+                                offset: Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.calendar_month_rounded,
+                                color: Colors.white,
+                                size: 18,
+                              ),
+                              SizedBox(width: 8),
+                              Text(
+                                month,
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
@@ -476,24 +611,25 @@ class _MealHistoryScreenState extends State<MealHistoryScreen> with SingleTicker
                             );
                           },
                           child: Container(
-                            margin: const EdgeInsets.fromLTRB(16, 6, 16, 10),
+                            margin: const EdgeInsets.fromLTRB(16, 8, 16, 12),
                             decoration: BoxDecoration(
                               color: Colors.white,
-                              borderRadius: BorderRadius.circular(20), // slightly more rounded
+                              borderRadius: BorderRadius.circular(22),
                               boxShadow: [
                                 BoxShadow(
-                                  color: AppColors.cardShadow.withOpacity(0.15),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 4),
+                                  color: AppColors.cardShadow.withOpacity(0.2),
+                                  blurRadius: 15,
+                                  spreadRadius: 1,
+                                  offset: const Offset(0, 6),
                                 ),
                               ],
                             ),
                             child: Material(
                               color: Colors.transparent,
-                              borderRadius: BorderRadius.circular(20),
+                              borderRadius: BorderRadius.circular(22),
                               child: InkWell(
-                                borderRadius: BorderRadius.circular(20),
-                                splashColor: AppColors.primaryPurple.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(22),
+                                splashColor: categoryColor.withOpacity(0.1),
                                 highlightColor: Colors.transparent,
                                 onTap: () {
                                   _showMealDetailsDialog(
@@ -506,25 +642,40 @@ class _MealHistoryScreenState extends State<MealHistoryScreen> with SingleTicker
                                   );
                                 },
                                 child: Padding(
-                                  padding: const EdgeInsets.all(14),
+                                  padding: const EdgeInsets.all(16),
                                   child: Row(
                                     children: [
                                       Container(
-                                        width: 60,
-                                        height: 60,
+                                        width: 65,
+                                        height: 65,
                                         decoration: BoxDecoration(
-                                          color: categoryColor.withOpacity(0.1),
-                                          borderRadius: BorderRadius.circular(14),
+                                          gradient: LinearGradient(
+                                            colors: [
+                                              categoryColor.withOpacity(0.8),
+                                              categoryColor.withOpacity(0.6),
+                                            ],
+                                            begin: Alignment.topLeft,
+                                            end: Alignment.bottomRight,
+                                          ),
+                                          borderRadius: BorderRadius.circular(16),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: categoryColor.withOpacity(0.3),
+                                              blurRadius: 8,
+                                              spreadRadius: 0,
+                                              offset: Offset(0, 3),
+                                            ),
+                                          ],
                                         ),
                                         child: Center(
                                           child: Icon(
                                             categoryIcon,
-                                            color: categoryColor,
-                                            size: 30,
+                                            color: Colors.white,
+                                            size: 32,
                                           ),
                                         ),
                                       ),
-                                      const SizedBox(width: 16),
+                                      const SizedBox(width: 18),
                                       Expanded(
                                         child: Column(
                                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -535,41 +686,54 @@ class _MealHistoryScreenState extends State<MealHistoryScreen> with SingleTicker
                                                 fontSize: 17,
                                                 fontWeight: FontWeight.w600,
                                                 color: AppColors.textDark,
+                                                letterSpacing: 0.2,
                                               ),
                                               maxLines: 1,
                                               overflow: TextOverflow.ellipsis,
                                             ),
-                                            const SizedBox(height: 6),
+                                            const SizedBox(height: 8),
                                             Row(
                                               children: [
                                                 Container(
-                                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                                                   decoration: BoxDecoration(
                                                     color: categoryColor.withOpacity(0.15),
-                                                    borderRadius: BorderRadius.circular(12),
+                                                    borderRadius: BorderRadius.circular(30),
+                                                    border: Border.all(
+                                                      color: categoryColor.withOpacity(0.3),
+                                                      width: 1,
+                                                    ),
                                                   ),
                                                   child: Text(
                                                     meal['category'],
                                                     style: TextStyle(
                                                       color: categoryColor,
                                                       fontSize: 12,
-                                                      fontWeight: FontWeight.w500,
+                                                      fontWeight: FontWeight.w600,
                                                     ),
                                                   ),
                                                 ),
-                                                const SizedBox(width: 8),
-                                                Icon(
-                                                  Icons.calendar_today_rounded,
-                                                  size: 12,
-                                                  color: AppColors.textDark.withOpacity(0.5),
+                                                const SizedBox(width: 12),
+                                                Container(
+                                                  padding: EdgeInsets.all(4),
+                                                  decoration: BoxDecoration(
+                                                    color: AppColors.ultraLightPurple,
+                                                    shape: BoxShape.circle,
+                                                  ),
+                                                  child: Icon(
+                                                    Icons.calendar_today_rounded,
+                                                    size: 10,
+                                                    color: AppColors.primaryPurple,
+                                                  ),
                                                 ),
-                                                const SizedBox(width: 4),
+                                                const SizedBox(width: 6),
                                                 Expanded(
                                                   child: Text(
                                                     meal['date'],
                                                     style: TextStyle(
                                                       color: AppColors.textDark.withOpacity(0.7),
                                                       fontSize: 12,
+                                                      fontWeight: FontWeight.w500,
                                                     ),
                                                     maxLines: 1,
                                                     overflow: TextOverflow.ellipsis,
@@ -580,10 +744,18 @@ class _MealHistoryScreenState extends State<MealHistoryScreen> with SingleTicker
                                           ],
                                         ),
                                       ),
-                                      Icon(
-                                        Icons.chevron_right_rounded,
-                                        color: AppColors.secondaryPurple,
-                                        size: 24,
+                                      Container(
+                                        height: 30,
+                                        width: 30,
+                                        decoration: BoxDecoration(
+                                          color: AppColors.ultraLightPurple,
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: Icon(
+                                          Icons.arrow_forward_ios_rounded,
+                                          color: AppColors.secondaryPurple,
+                                          size: 14,
+                                        ),
                                       ),
                                     ],
                                   ),
@@ -598,7 +770,7 @@ class _MealHistoryScreenState extends State<MealHistoryScreen> with SingleTicker
                 ),
                 
               SliverToBoxAdapter(
-                child: SizedBox(height: 30),
+                child: SizedBox(height: 40),
               ),
             ],
           );
@@ -672,168 +844,233 @@ class _MealHistoryScreenState extends State<MealHistoryScreen> with SingleTicker
   }
 
   void _showMealDetailsDialog(
-  BuildContext context,
-  String mealName,
-  String category,
-  String date,
-  IconData icon,
-  Color color,
-) {
-  showGeneralDialog(
-    context: context,
-    barrierDismissible: true,
-    barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
-    barrierColor: Colors.black54,
-    transitionDuration: Duration(milliseconds: 400),
-    pageBuilder: (context, animation, secondaryAnimation) {
-      return Center(
-        child: Material(
-          color: Colors.transparent,
-          child: ScaleTransition(
-            scale: CurvedAnimation(
-              parent: animation,
-              curve: Curves.easeOutBack,
-            ),
-            child: Dialog(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(24),
+    BuildContext context,
+    String mealName,
+    String category,
+    String date,
+    IconData icon,
+    Color color,
+  ) {
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
+      barrierColor: Colors.black54,
+      transitionDuration: Duration(milliseconds: 400),
+      pageBuilder: (context, animation, secondaryAnimation) {
+        return Center(
+          child: Material(
+            color: Colors.transparent,
+            child: ScaleTransition(
+              scale: CurvedAnimation(
+                parent: animation,
+                curve: Curves.easeOutBack,
               ),
-              backgroundColor: Colors.transparent,
-              elevation: 30,
-              child: Container(
-                width: MediaQuery.of(context).size.width * 0.85,
-                padding: EdgeInsets.symmetric(vertical: 28, horizontal: 26),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Colors.white, AppColors.ultraLightPurple],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
+              child: Dialog(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(28),
+                ),
+                backgroundColor: Colors.transparent,
+                elevation: 30,
+                child: Container(
+                  width: MediaQuery.of(context).size.width * 0.85,
+                  padding: EdgeInsets.symmetric(vertical: 32, horizontal: 28),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Colors.white, AppColors.ultraLightPurple],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(28),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.darkPurple.withOpacity(0.2),
+                        blurRadius: 30,
+                        spreadRadius: 2,
+                        offset: Offset(0, 15),
+                      ),
+                    ],
                   ),
-                  borderRadius: BorderRadius.circular(24),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.darkPurple.withOpacity(0.15),
-                      blurRadius: 25,
-                      spreadRadius: 3,
-                      offset: Offset(0, 10),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    // Animated Glowing Icon
-                    Container(
-                      padding: EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: color.withOpacity(0.1),
-                        boxShadow: [
-                          BoxShadow(
-                            color: color.withOpacity(0.4),
-                            blurRadius: 30,
-                            spreadRadius: 1,
-                          ),
-                        ],
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      // Animated Glowing Icon with pulse effect
+                      TweenAnimationBuilder(
+                        tween: Tween<double>(begin: 0.9, end: 1.1),
+                        duration: Duration(seconds: 2),
+                        curve: Curves.easeInOut,
+                        builder: (context, value, child) {
+                          return Transform.scale(
+                            scale: value as double,
+                            child: Container(
+                              padding: EdgeInsets.all(22),
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                gradient: RadialGradient(
+                                  colors: [
+                                    color.withOpacity(0.8),
+                                    color.withOpacity(0.6),
+                                  ],
+                                  radius: 0.8,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: color.withOpacity(0.5),
+                                    blurRadius: 30,
+                                    spreadRadius: 2,
+                                  ),
+                                ],
+                              ),
+                              child: Icon(
+                                icon,
+                                color: Colors.white,
+                                size: 46,
+                              ),
+                            ),
+                          );
+                        },
                       ),
-                      child: Icon(
-                        icon,
-                        color: color,
-                        size: 40,
-                      ),
-                    ),
-                    SizedBox(height: 18),
-                    Text(
-                      'Meal Details',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 0.5,
-                        color: AppColors.darkPurple,
-                      ),
-                    ),
-                    SizedBox(height: 18),
-                    Divider(
-                      color: AppColors.lightPurple,
-                      thickness: 1.2,
-                      indent: 30,
-                      endIndent: 30,
-                    ),
-                    SizedBox(height: 20),
-                    _buildDetailRow(Icons.restaurant_menu, 'Meal', mealName),
-                    SizedBox(height: 16),
-                    _buildDetailRow(Icons.category_rounded, 'Category', category),
-                    SizedBox(height: 16),
-                    _buildDetailRow(Icons.calendar_today_rounded, 'Date', date),
-                    SizedBox(height: 30),
-                    OutlinedButton.icon(
-                      onPressed: () => Navigator.of(context).pop(),
-                      icon: Icon(Icons.check_circle_outline, size: 20),
-                      label: Text('Close', style: TextStyle(fontWeight: FontWeight.w600)),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: AppColors.darkPurple,
-                        side: BorderSide(color: AppColors.primaryPurple),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30),
+                      SizedBox(height: 24),
+                      Text(
+                        'Meal Details',
+                        style: TextStyle(
+                          fontSize: 26,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.5,
+                          color: AppColors.darkPurple,
+                          shadows: [
+                            Shadow(
+                              blurRadius: 2,
+                              color: AppColors.darkPurple.withOpacity(0.3),
+                              offset: Offset(0, 1),
+                            ),
+                          ],
                         ),
-                        padding: EdgeInsets.symmetric(horizontal: 36, vertical: 14),
-                        textStyle: TextStyle(fontSize: 16),
                       ),
-                    ),
-                  ],
+                      SizedBox(height: 20),
+                      Divider(
+                        color: AppColors.lightPurple,
+                        thickness: 2,
+                        indent: 40,
+                        endIndent: 40,
+                      ),
+                      SizedBox(height: 24),
+                      _buildEnhancedDetailRow(Icons.restaurant_menu, 'Meal', mealName),
+                      SizedBox(height: 18),
+                      _buildEnhancedDetailRow(Icons.category_rounded, 'Category', category),
+                      SizedBox(height: 18),
+                      _buildEnhancedDetailRow(Icons.calendar_today_rounded, 'Date', date),
+                      SizedBox(height: 32),
+                      Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [AppColors.primaryPurple, AppColors.secondaryPurple],
+                            begin: Alignment.centerLeft,
+                            end: Alignment.centerRight,
+                          ),
+                          borderRadius: BorderRadius.circular(30),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.primaryPurple.withOpacity(0.3),
+                              blurRadius: 10,
+                              spreadRadius: 0,
+                              offset: Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: ElevatedButton.icon(
+                          onPressed: () => Navigator.of(context).pop(),
+                          icon: Icon(Icons.check_circle_rounded, size: 20),
+                          label: Text('Close', style: TextStyle(fontWeight: FontWeight.w600)),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.transparent,
+                            foregroundColor: Colors.white,
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(30),
+                            ),
+                            padding: EdgeInsets.symmetric(horizontal: 40, vertical: 16),
+                            textStyle: TextStyle(fontSize: 16, letterSpacing: 0.5),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
           ),
-        ),
-      );
-    },
-  );
-}
+        );
+      },
+    );
+  }
 
-  
-  Widget _buildDetailRow(IconData icon, String label, String value) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          padding: EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: AppColors.lightPurple,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Icon(
-            icon,
-            color: AppColors.primaryPurple,
-            size: 20,
-          ),
+  Widget _buildEnhancedDetailRow(IconData icon, String label, String value) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        color: AppColors.ultraLightPurple,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: AppColors.lightPurple,
+          width: 1.5,
         ),
-        SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: TextStyle(
-                  color: AppColors.textDark.withOpacity(0.7),
-                  fontSize: 14,
-                ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Container(
+            padding: EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [AppColors.primaryPurple, AppColors.secondaryPurple],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
               ),
-              SizedBox(height: 2),
-              Text(
-                value,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textDark,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primaryPurple.withOpacity(0.3),
+                  blurRadius: 5,
+                  offset: Offset(0, 2),
                 ),
-              ),
-            ],
+              ],
+            ),
+            child: Icon(
+              icon,
+              color: Colors.white,
+              size: 22,
+            ),
           ),
-        ),
-      ],
+          SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    color: AppColors.textDark.withOpacity(0.6),
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                SizedBox(height: 4),
+                Text(
+                  value,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textDark,
+                    letterSpacing: 0.3,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

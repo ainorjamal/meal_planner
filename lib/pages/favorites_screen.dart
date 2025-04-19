@@ -238,9 +238,6 @@ class FavoritesScreen extends StatelessWidget {
           icon: Icon(Icons.arrow_back_ios, color: AppColors.white, size: 22),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
-        ),
         iconTheme: IconThemeData(color: AppColors.white),
         actions: [
           Padding(
