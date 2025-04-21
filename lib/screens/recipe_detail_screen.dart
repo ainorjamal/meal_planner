@@ -4,8 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/recipe.dart';
 
-
-// Custom color palette - same as in CalendarScreen
+// Enhanced color palette
 class AppColors {
   static const Color primaryPurple = Color(0xFF6750A4);
   static const Color secondaryPurple = Color(0xFF9A82DB);
@@ -18,6 +17,11 @@ class AppColors {
   static const Color lunchColor = Color(0xFF66BB6A);
   static const Color dinnerColor = Color(0xFF5C6BC0);
   static const Color snackColor = Color(0xFFBF8C6D);
+  
+  // New enhanced colors
+  static const Color backgroundGradientStart = Color(0xFF8265CD);
+  static const Color backgroundGradientEnd = Color(0xFFF5F5F5);
+  static const Color cardBackground = Color(0xFFFAFAFA);
 }
 
 class RecipeDetailScreen extends StatefulWidget {
@@ -538,17 +542,24 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     
     return Scaffold(
+      // Enhanced AppBar with proper colors and white back arrow
       appBar: AppBar(
         title: Text(
           widget.recipe.name,
           style: TextStyle(
             fontWeight: FontWeight.w600,
-            color: isDarkMode ? Colors.white : Colors.white,
+            color: Colors.white,
+            fontSize: 20,
           ),
         ),
         backgroundColor: AppColors.primaryPurple,
         elevation: 0,
         centerTitle: true,
+        // White back button as requested
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
         actions: [
           IconButton(
             icon: Icon(Icons.favorite_border, color: Colors.white),
@@ -562,72 +573,97 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              isDarkMode ? AppColors.darkPurple : AppColors.lightPurple,
-              isDarkMode ? Colors.black : Colors.white,
+              isDarkMode ? AppColors.darkPurple : AppColors.backgroundGradientStart,
+              isDarkMode ? Colors.black : AppColors.backgroundGradientEnd,
             ],
             stops: [0.0, 0.3],
           ),
         ),
         child: SingleChildScrollView(
+          physics: BouncingScrollPhysics(),
           padding: EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Recipe image with rounded corners and shadow
+              // Enhanced recipe image with rounded corners and better shadow
               Container(
                 height: 220,
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.2),
-                      blurRadius: 10,
-                      offset: Offset(0, 5),
+                      color: Colors.black.withOpacity(0.25),
+                      blurRadius: 15,
+                      offset: Offset(0, 8),
+                      spreadRadius: 2,
                     ),
                   ],
                 ),
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(16),
-                  child: Image.network(
-                    widget.recipe.imageUrl,
-                    fit: BoxFit.cover,
+                  borderRadius: BorderRadius.circular(20),
+                  child: Hero(
+                    tag: 'recipe-${widget.recipe.id}',
+                    child: Image.network(
+                      widget.recipe.imageUrl,
+                      fit: BoxFit.cover,
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return Center(
+                          child: CircularProgressIndicator(
+                            color: AppColors.primaryPurple,
+                            value: loadingProgress.expectedTotalBytes != null
+                                ? loadingProgress.cumulativeBytesLoaded / 
+                                  loadingProgress.expectedTotalBytes!
+                                : null,
+                          ),
+                        );
+                      },
+                    ),
                   ),
                 ),
               ),
               SizedBox(height: 24),
               
-              // Recipe details card
+              // Enhanced recipe details card
               Card(
-                elevation: 4,
+                elevation: 5,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),
+                color: isDarkMode ? Color(0xFF282828) : AppColors.cardBackground,
                 child: Padding(
-                  padding: EdgeInsets.all(16),
+                  padding: EdgeInsets.all(18),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Recipe category
+                      // Recipe category with enhanced styling
                       Row(
                         children: [
                           Container(
                             padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                             decoration: BoxDecoration(
-                              color: AppColors.lightPurple,
+                              color: isDarkMode ? AppColors.darkPurple : AppColors.lightPurple,
                               borderRadius: BorderRadius.circular(20),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppColors.primaryPurple.withOpacity(0.2),
+                                  blurRadius: 4,
+                                  offset: Offset(0, 2),
+                                ),
+                              ],
                             ),
                             child: Text(
                               widget.recipe.category,
                               style: TextStyle(
-                                color: AppColors.darkPurple,
+                                color: isDarkMode ? Colors.white : AppColors.darkPurple,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 14,
                               ),
                             ),
                           ),
                           Spacer(),
-                          // Add rating stars or other metadata here
+                          // Enhanced rating stars
                           Row(
                             children: List.generate(5, (index) {
                               return Icon(
@@ -639,20 +675,29 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                           ),
                         ],
                       ),
-                      SizedBox(height: 16),
+                      SizedBox(height: 20),
                       
-                      // Recipe ingredients section
-                      Text(
-                        'Ingredients',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: isDarkMode ? Colors.white : AppColors.darkPurple,
-                        ),
+                      // Recipe ingredients section with enhanced styling
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.restaurant_menu,
+                            color: AppColors.secondaryPurple,
+                            size: 22,
+                          ),
+                          SizedBox(width: 8),
+                          Text(
+                            'Ingredients',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: isDarkMode ? Colors.white : AppColors.darkPurple,
+                            ),
+                          ),
+                        ],
                       ),
-                      SizedBox(height: 8),
-                      // Display ingredients (assuming Recipe model has ingredients)
-                      // Replace with actual data from your Recipe model
+                      SizedBox(height: 12),
+                      // Display ingredients with enhanced styling
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -665,16 +710,26 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                       ),
                       SizedBox(height: 24),
                       
-                      // Recipe instructions section
-                      Text(
-                        'Instructions',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: isDarkMode ? Colors.white : AppColors.darkPurple,
-                        ),
+                      // Recipe instructions section with enhanced styling
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.menu_book,
+                            color: AppColors.secondaryPurple,
+                            size: 22,
+                          ),
+                          SizedBox(width: 8),
+                          Text(
+                            'Instructions',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: isDarkMode ? Colors.white : AppColors.darkPurple,
+                            ),
+                          ),
+                        ],
                       ),
-                      SizedBox(height: 8),
+                      SizedBox(height: 12),
                       Text(
                         widget.recipe.instructions
                           .trim()
@@ -684,7 +739,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                         textAlign: TextAlign.justify,
                         style: TextStyle(
                           fontSize: 16,
-                          height: 1.5,
+                          height: 1.6,
                           fontFamily: 'Poppins', 
                           fontWeight: FontWeight.normal,
                           fontStyle: FontStyle.normal,
@@ -697,26 +752,30 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
               ),
               SizedBox(height: 24),
               
-              // Action buttons
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      icon: Icon(Icons.add),
-                      label: Text('Add to Meal Plan'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primaryPurple,
-                        foregroundColor: Colors.white,
-                        padding: EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30),
-                        ),
-                      ),
-                      onPressed: () => _showAddToMealDialog(context),
+              // Enhanced action buttons
+              Container(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  icon: Icon(Icons.add),
+                  label: Text(
+                    'Add to Meal Plan',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
-                ],
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primaryPurple,
+                    foregroundColor: Colors.white,
+                    padding: EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    elevation: 5,
+                    shadowColor: AppColors.primaryPurple.withOpacity(0.5),
+                  ),
+                  onPressed: () => _showAddToMealDialog(context),
+                ),
               ),
               SizedBox(height: 16),
             ],
@@ -726,24 +785,222 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
     );
   }
   
-  // Helper method to build ingredient item
+  // Enhanced helper method to build ingredient item
   Widget _buildIngredientItem(String ingredient) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      padding: const EdgeInsets.symmetric(vertical: 5.0),
       child: Row(
         children: [
-          Icon(
-            Icons.fiber_manual_record,
-            size: 12,
-            color: AppColors.secondaryPurple,
+          Container(
+            width: 8,
+            height: 8,
+            decoration: BoxDecoration(
+              color: AppColors.secondaryPurple,
+              shape: BoxShape.circle,
+            ),
           ),
-          SizedBox(width: 8),
+          SizedBox(width: 12),
           Text(
             ingredient,
-            style: TextStyle(fontSize: 16),
+            style: TextStyle(
+              fontSize: 16,
+              color: isDarkMode ? Colors.grey[300] : Colors.black87,
+            ),
           ),
         ],
       ),
     );
   }
 }
+
+// Extend this design style to other screens as needed
+class MealHistoryScreen extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          'Meal History',
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+          ),
+        ),
+        backgroundColor: AppColors.primaryPurple,
+        elevation: 0,
+        centerTitle: true,
+        // White back button as in the reference image
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.refresh, color: Colors.white),
+            onPressed: () {
+              // Refresh functionality
+            },
+          ),
+        ],
+      ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              AppColors.backgroundGradientStart,
+              AppColors.backgroundGradientEnd,
+            ],
+            stops: [0.0, 0.3],
+          ),
+        ),
+        child: ListView(
+          padding: EdgeInsets.all(16),
+          children: [
+            // Meal history header card
+            Card(
+              elevation: 4,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              color: AppColors.primaryPurple,
+              child: Padding(
+                padding: EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.restaurant,
+                        color: Colors.white,
+                        size: 32,
+                      ),
+                    ),
+                    SizedBox(width: 16),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Meal History',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 20,
+                          ),
+                        ),
+                        SizedBox(height: 4),
+                        Text(
+                          'You have 16 meals in your history',
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.9),
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    )
+                  ],
+                ),
+              ),
+            ),
+            SizedBox(height: 16),
+            
+            // Month header
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              decoration: BoxDecoration(
+                color: AppColors.lightPurple,
+                borderRadius: BorderRadius.circular(30),
+              ),
+              child: Text(
+                'April 2025',
+                style: TextStyle(
+                  color: AppColors.darkPurple,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
+            ),
+            SizedBox(height: 16),
+            
+            // Meal item
+            Card(
+              elevation: 2,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: ListTile(
+                leading: Container(
+                  width: 50,
+                  height: 50,
+                  decoration: BoxDecoration(
+                    color: AppColors.lightPurple,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(
+                    Icons.restaurant,
+                    color: AppColors.darkPurple,
+                    size: 24,
+                  ),
+                ),
+                title: Text(
+                  'Migas',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+                subtitle: Row(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade200,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        'Uncategorized',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey.shade700,
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 8),
+                    Icon(
+                      Icons.calendar_today,
+                      size: 12,
+                      color: Colors.grey.shade600,
+                    ),
+                    SizedBox(width: 4),
+                    Text(
+                      'April 12, 2025',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                  ],
+                ),
+                trailing: Icon(
+                  Icons.chevron_right,
+                  color: AppColors.primaryPurple,
+                ),
+                onTap: () {
+                  // Navigate to meal details
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+                      
