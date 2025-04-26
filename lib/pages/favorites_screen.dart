@@ -6,18 +6,18 @@ import 'package:http/http.dart' as http;
 import '../models/recipe.dart';
 import '/screens/recipe_detail_screen.dart';
 
-// Enhanced unified color palette with more vibrant and modern colors
+// Enhanced unified color palette to match the purple theme in the image
 class AppColors {
-  static const Color primaryPurple = Color(0xFF7E57C2);  // Slightly more vibrant purple
-  static const Color secondaryPurple = Color(0xFFB39DDB); // Lighter secondary
-  static const Color lightPurple = Color(0xFFEDE7F6);    // Much lighter background
-  static const Color darkPurple = Color(0xFF4527A0);     // Deeper accent
+  static const Color primaryPurple = Color(0xFF6A4AA1);  // Deep purple from the image
+  static const Color secondaryPurple = Color(0xFF8B70C4); // Medium purple
+  static const Color lightPurple = Color(0xFFE7E1F7);    // Very light purple background
+  static const Color darkPurple = Color(0xFF4D2C91);     // Darker accent
   static const Color white = Colors.white;
-  static const Color grey = Color(0xFFF8F8F8);           // Slightly lighter grey
-  static const Color darkGrey = Color(0xFF555555);       // Slightly darker for better contrast
+  static const Color grey = Color(0xFFF8F8F8);
+  static const Color darkGrey = Color(0xFF555555);
   static const Color deleteRed = Color(0xFFE53935);
-  static const Color background = Color(0xFFFCFBFF);     // Slightly warmer background
-  static const Color accentYellow = Color(0xFFFFD54F);   // New accent for highlights
+  static const Color background = Color(0xFFFCFBFF);
+  static const Color accentYellow = Color(0xFFFFD54F);
   
   // Shadow colors
   static Color shadowColor = darkPurple.withOpacity(0.08);
@@ -227,8 +227,9 @@ class FavoritesScreen extends StatelessWidget {
           'Favorite Recipes',
           style: TextStyle(
             color: AppColors.white,
-            fontWeight: FontWeight.w600,
-            fontSize: 20,
+            fontWeight: FontWeight.w700,
+            fontSize: 22,
+            letterSpacing: 0.5,
           ),
         ),
         centerTitle: true,
@@ -245,12 +246,6 @@ class FavoritesScreen extends StatelessWidget {
             child: Icon(Icons.favorite_rounded, size: 22, color: AppColors.white),
           ),
         ],
-        flexibleSpace: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
-            color: AppColors.primaryPurple,
-          ),
-        ),
       ),
       body: Container(
         decoration: BoxDecoration(
@@ -358,12 +353,92 @@ class FavoritesScreen extends StatelessWidget {
           return _buildErrorState(snapshot.error);
         }
 
-        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-          return _buildEmptyState(context);  // Fixed: Pass context here
+        // Get total count for the header card
+        int totalFavorites = 0;
+        if (snapshot.hasData) {
+          totalFavorites = snapshot.data!.docs.length;
         }
 
-        final favoriteDocs = snapshot.data!.docs;
-        return _buildFavoritesListView(context, favoriteDocs, currentUser);
+        return Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
+              child: Container(
+                padding: EdgeInsets.symmetric(vertical: 20, horizontal: 24),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [AppColors.primaryPurple, AppColors.secondaryPurple],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.darkPurple.withOpacity(0.3),
+                      offset: Offset(0, 8),
+                      blurRadius: 20,
+                      spreadRadius: 0,
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.3),
+                          width: 2,
+                        ),
+                      ),
+                      child: Icon(
+                        Icons.favorite_rounded,
+                        color: Colors.white,
+                        size: 32,
+                      ),
+                    ),
+                    SizedBox(width: 20),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Favorite Recipes',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                          SizedBox(height: 6),
+                          Text(
+                            'You have $totalFavorites recipes in your favorites',
+                            style: TextStyle(
+                              color: Colors.white.withOpacity(0.9),
+                              fontSize: 14,
+                              letterSpacing: 0.2,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            // Show empty or list state based on data
+            if (!snapshot.hasData || snapshot.data!.docs.isEmpty)
+              Expanded(child: _buildEmptyState(context))
+            else
+              Expanded(child: _buildFavoritesListView(context, snapshot.data!.docs, currentUser)),
+          ],
+        );
       },
     );
   }
@@ -446,7 +521,7 @@ class FavoritesScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildEmptyState(BuildContext context) {  // Fixed: Accept context as a parameter
+  Widget _buildEmptyState(BuildContext context) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24.0),
@@ -526,7 +601,7 @@ class FavoritesScreen extends StatelessWidget {
 
   Widget _buildFavoritesListView(BuildContext context, List<QueryDocumentSnapshot> favoriteDocs, User currentUser) {
     return ListView.builder(
-      padding: EdgeInsets.all(20),
+      padding: EdgeInsets.fromLTRB(20, 10, 20, 20),
       physics: BouncingScrollPhysics(),
       itemCount: favoriteDocs.length,
       itemBuilder: (context, index) {

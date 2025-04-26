@@ -559,7 +559,6 @@ class _RecipesScreenState extends State<RecipesScreen> with SingleTickerProvider
   }
 }
 
-// Search functionality
 class RecipeSearchDelegate extends SearchDelegate<String> {
   final List<Recipe> recipes;
   final String? userId;
@@ -568,34 +567,61 @@ class RecipeSearchDelegate extends SearchDelegate<String> {
   RecipeSearchDelegate(this.recipes, this.userId, this.onFavoriteToggle);
 
   @override
+  String get searchFieldLabel => 'Search recipes...';
+
+  @override
+  TextStyle? get searchFieldStyle => TextStyle(
+        color: Colors.white,
+        fontSize: 20,
+        fontWeight: FontWeight.w500,
+      );
+
+  @override
   ThemeData appBarTheme(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Theme.of(context).copyWith(
       primaryColor: isDark ? AppColors.darkPurple : AppColors.primaryPurple,
       appBarTheme: AppBarTheme(
         backgroundColor: isDark ? AppColors.darkPurple : AppColors.primaryPurple,
+        elevation: 4,
+        foregroundColor: Colors.white,
         iconTheme: IconThemeData(color: Colors.white),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.only(
+            bottomLeft: Radius.circular(16),
+            bottomRight: Radius.circular(16),
+          ),
+        ),
       ),
       inputDecorationTheme: InputDecorationTheme(
         hintStyle: TextStyle(color: Colors.white70),
+        border: InputBorder.none,
+        focusedBorder: InputBorder.none,
+        enabledBorder: InputBorder.none,
       ),
       textTheme: TextTheme(
-        titleLarge: TextStyle( // Updated from headline6 to titleLarge
+        titleLarge: TextStyle(
           color: Colors.white,
           fontSize: 18,
         ),
       ),
+      scaffoldBackgroundColor: isDark ? AppColors.darkBackground : Colors.grey[50],
     );
   }
 
   @override
   List<Widget> buildActions(BuildContext context) {
     return [
-      IconButton(
-        icon: Icon(Icons.clear),
-        onPressed: () {
-          query = '';
-        },
+      AnimatedOpacity(
+        opacity: query.isNotEmpty ? 1.0 : 0.0,
+        duration: Duration(milliseconds: 200),
+        child: IconButton(
+          icon: Icon(Icons.clear, color: Colors.white),
+          onPressed: () {
+            query = '';
+          },
+          tooltip: 'Clear',
+        ),
       ),
     ];
   }
@@ -603,10 +629,11 @@ class RecipeSearchDelegate extends SearchDelegate<String> {
   @override
   Widget buildLeading(BuildContext context) {
     return IconButton(
-      icon: Icon(Icons.arrow_back),
+      icon: Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
       onPressed: () {
         close(context, '');
       },
+      tooltip: 'Back',
     );
   }
 
@@ -632,134 +659,487 @@ class RecipeSearchDelegate extends SearchDelegate<String> {
                 recipe.category.toLowerCase().contains(query.toLowerCase()))
             .toList();
 
-    if (results.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              query.isEmpty ? Icons.search : Icons.no_food,
-              size: 64,
-              color: isDark ? Colors.grey.shade700 : Colors.grey.shade400,
-            ),
-            SizedBox(height: 16),
-            Text(
-              query.isEmpty
-                  ? 'Search for recipes'
-                  : 'No recipes found for "$query"',
-              style: TextStyle(
-                fontSize: 18,
-                color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
+    if (query.isEmpty) {
+      // Show empty search state with prompt
+      return Container(
+        color: isDark ? AppColors.darkBackground : Colors.grey[50],
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 120,
+                height: 120,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: isDark ? AppColors.darkPurple.withOpacity(0.2) : AppColors.lightPurple,
+                ),
+                child: Icon(
+                  Icons.search,
+                  size: 64,
+                  color: isDark ? AppColors.lightPurple : AppColors.primaryPurple,
+                ),
               ),
-            ),
-          ],
+              SizedBox(height: 24),
+              Text(
+                'Find your favorite recipes',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? Colors.white : Colors.black87,
+                ),
+              ),
+              SizedBox(height: 12),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 32),
+                child: Text(
+                  'Type in the search bar to discover delicious recipes',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: isDark ? Colors.grey[400] : Colors.grey[600],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    } else if (results.isEmpty) {
+      // No results found
+      return Container(
+        color: isDark ? AppColors.darkBackground : Colors.grey[50],
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 120,
+                height: 120,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: isDark ? Colors.red.withOpacity(0.1) : Colors.red.withOpacity(0.1),
+                ),
+                child: Icon(
+                  Icons.search_off_rounded,
+                  size: 64,
+                  color: isDark ? Colors.red[300] : Colors.red[400],
+                ),
+              ),
+              SizedBox(height: 24),
+              Text(
+                'No recipes found',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? Colors.white : Colors.black87,
+                ),
+              ),
+              SizedBox(height: 12),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 32),
+                child: Text(
+                  'Try different keywords or check your spelling',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: isDark ? Colors.grey[400] : Colors.grey[600],
+                  ),
+                ),
+              ),
+              SizedBox(height: 24),
+              ElevatedButton.icon(
+                onPressed: () {
+                  query = '';
+                },
+                icon: Icon(Icons.refresh),
+                label: Text('Clear Search'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primaryPurple,
+                  foregroundColor: Colors.white,
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       );
     }
 
-    return ListView.builder(
-      padding: EdgeInsets.all(16),
-      itemCount: results.length,
-      itemBuilder: (context, index) {
-        final recipe = results[index];
-        return Card(
-          margin: EdgeInsets.only(bottom: 12),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          clipBehavior: Clip.antiAlias,
-          elevation: 2,
-          child: InkWell(
-            onTap: () {
-              if (userId != null) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => RecipeDetailScreen(
-                      recipe: recipe,
-                      userId: userId!,
-                    ),
-                  ),
-                );
-              }
-            },
+    // Show search results
+    return Container(
+      color: isDark ? AppColors.darkBackground : Colors.grey[50],
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
+            decoration: BoxDecoration(
+              color: isDark ? AppColors.darkSurface : Colors.white,
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(16),
+                bottomRight: Radius.circular(16),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 8,
+                  offset: Offset(0, 3),
+                ),
+              ],
+            ),
             child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // Recipe image
+                Icon(
+                  Icons.restaurant_menu,
+                  size: 18,
+                  color: AppColors.primaryPurple,
+                ),
+                SizedBox(width: 8),
+                Text(
+                  '${results.length} result${results.length != 1 ? 's' : ''} for "${query}"',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: isDark ? Colors.white : Colors.black87,
+                  ),
+                ),
+                Spacer(),
                 Container(
-                  width: 100,
-                  height: 100,
-                  child: Image.network(
-                    recipe.imageUrl,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        color: const Color.fromARGB(255, 116, 77, 110),
-                        child: Icon(
-                          Icons.broken_image,
-                          color: Colors.grey.shade600,
-                        ),
-                      );
-                    },
+                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: AppColors.lightPurple,
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                ),
-                
-                // Recipe details
-                Expanded(
-                  child: Padding(
-                    padding: EdgeInsets.all(12),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          recipe.name,
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.filter_list,
+                        size: 14,
+                        color: AppColors.darkPurple,
+                      ),
+                      SizedBox(width: 4),
+                      Text(
+                        'Filter',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppColors.darkPurple,
+                          fontWeight: FontWeight.w500,
                         ),
-                        SizedBox(height: 4),
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.category_outlined,
-                              size: 14,
-                              color: isDark ? Colors.grey.shade400 : Colors.grey.shade700,
-                            ),
-                            SizedBox(width: 4),
-                            Text(
-                              recipe.category,
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: isDark ? Colors.grey.shade400 : Colors.grey.shade700,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                
-                // Favorite button
-                Padding(
-                  padding: EdgeInsets.all(8),
-                  child: IconButton(
-                    icon: Icon(
-                      recipe.isFavorite ? Icons.favorite : Icons.favorite_border,
-                      color: recipe.isFavorite ? Colors.red : Colors.grey,
-                    ),
-                    onPressed: () => onFavoriteToggle(recipe.id),
+                      ),
+                    ],
                   ),
                 ),
               ],
             ),
           ),
-        );
-      },
+          Expanded(
+            child: ListView.builder(
+              padding: EdgeInsets.fromLTRB(16, 12, 16, 16),
+              itemCount: results.length,
+              itemBuilder: (context, index) {
+                final recipe = results[index];
+                return Container(
+                  margin: EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: isDark 
+                            ? Colors.black.withOpacity(0.3) 
+                            : Colors.black.withOpacity(0.1),
+                        blurRadius: 8,
+                        offset: Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Material(
+                    color: isDark ? AppColors.darkSurface : Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    clipBehavior: Clip.antiAlias,
+                    child: InkWell(
+                      onTap: () {
+                        if (userId != null) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => RecipeDetailScreen(
+                                recipe: recipe,
+                                userId: userId!,
+                              ),
+                            ),
+                          );
+                        }
+                      },
+                      splashColor: AppColors.lightPurple.withOpacity(0.3),
+                      highlightColor: AppColors.lightPurple.withOpacity(0.1),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Recipe image
+                          Stack(
+                            children: [
+                              Hero(
+                                tag: 'recipe-${recipe.id}-search',
+                                child: Container(
+                                  height: 150,
+                                  width: double.infinity,
+                                  child: Image.network(
+                                    recipe.imageUrl,
+                                    fit: BoxFit.cover,
+                                    loadingBuilder: (context, child, loadingProgress) {
+                                      if (loadingProgress == null) return child;
+                                      return Container(
+                                        color: isDark ? Colors.grey[800] : Colors.grey[200],
+                                        child: Center(
+                                          child: CircularProgressIndicator(
+                                            valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryPurple),
+                                            value: loadingProgress.expectedTotalBytes != null
+                                                ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                                                : null,
+                                            strokeWidth: 2,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return Container(
+                                        color: isDark ? Colors.grey[800] : const Color.fromARGB(255, 116, 77, 110).withOpacity(0.2),
+                                        child: Center(
+                                          child: Icon(
+                                            Icons.broken_image_rounded,
+                                            color: isDark ? Colors.grey[600] : Colors.grey[400],
+                                            size: 32,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ),
+                              
+                              // Category badge
+                              Positioned(
+                                top: 12,
+                                left: 12,
+                                child: Container(
+                                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.darkPurple.withOpacity(0.8),
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: Text(
+                                    recipe.category,
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              
+                              // Favorite button
+                              Positioned(
+                                top: 12,
+                                right: 12,
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.9),
+                                    shape: BoxShape.circle,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.1),
+                                        blurRadius: 4,
+                                        offset: Offset(0, 2),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Material(
+                                    color: Colors.transparent,
+                                    child: InkWell(
+                                      onTap: () => onFavoriteToggle(recipe.id),
+                                      customBorder: CircleBorder(),
+                                      child: Padding(
+                                        padding: EdgeInsets.all(8),
+                                        child: AnimatedSwitcher(
+                                          duration: Duration(milliseconds: 300),
+                                          transitionBuilder: (child, animation) {
+                                            return ScaleTransition(
+                                              scale: animation,
+                                              child: child,
+                                            );
+                                          },
+                                          child: Icon(
+                                            recipe.isFavorite ? Icons.favorite : Icons.favorite_border,
+                                            key: ValueKey<bool>(recipe.isFavorite),
+                                            color: recipe.isFavorite ? Colors.red : Colors.grey[600],
+                                            size: 24,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          
+                          // Recipe details
+                          Padding(
+                            padding: EdgeInsets.all(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Recipe name with highlighted text
+                                RichText(
+                                  text: _highlightMatchText(
+                                    recipe.name, 
+                                    query,
+                                    TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: isDark ? Colors.white : Colors.black87,
+                                    ),
+                                    TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.primaryPurple,
+                                      backgroundColor: AppColors.lightPurple.withOpacity(0.3),
+                                    ),
+                                  ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                SizedBox(height: 8),
+                                
+                                // Recipe info row
+                                Row(
+                                  children: [
+                                    _buildInfoChip(
+                                      icon: Icons.timer_outlined,
+                                      label: '30 min',
+                                      isDark: isDark,
+                                    ),
+                                    SizedBox(width: 12),
+                                    _buildInfoChip(
+                                      icon: Icons.restaurant_menu,
+                                      label: recipe.category,
+                                      isDark: isDark,
+                                      highlight: query,
+                                    ),
+                                    SizedBox(width: 12),
+                                    _buildInfoChip(
+                                      icon: Icons.room_service_outlined,
+                                      label: '4 servings',
+                                      isDark: isDark,
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
     );
+  }
+
+  // Helper method to create info chips
+  Widget _buildInfoChip({
+    required IconData icon,
+    required String label,
+    required bool isDark,
+    String? highlight,
+  }) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: isDark ? Colors.grey[800] : AppColors.lightPurple.withOpacity(0.3),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            icon,
+            size: 14,
+            color: isDark ? Colors.grey[400] : AppColors.darkPurple,
+          ),
+          SizedBox(width: 4),
+          highlight != null && highlight.isNotEmpty
+              ? RichText(
+                  text: _highlightMatchText(
+                    label,
+                    highlight,
+                    TextStyle(
+                      fontSize: 12,
+                      color: isDark ? Colors.grey[400] : AppColors.darkPurple,
+                    ),
+                    TextStyle(
+                      fontSize: 12,
+                      color: AppColors.primaryPurple,
+                      backgroundColor: AppColors.lightPurple.withOpacity(0.3),
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                )
+              : Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: isDark ? Colors.grey[400] : AppColors.darkPurple,
+                  ),
+                ),
+        ],
+      ),
+    );
+  }
+
+  // Helper method to highlight matching text
+  TextSpan _highlightMatchText(String text, String query, TextStyle normalStyle, TextStyle highlightStyle) {
+    if (query.isEmpty) return TextSpan(text: text, style: normalStyle);
+    
+    final String lowerCaseText = text.toLowerCase();
+    final String lowerCaseQuery = query.toLowerCase();
+    
+    final List<TextSpan> spans = [];
+    int start = 0;
+    
+    while (true) {
+      final int matchIndex = lowerCaseText.indexOf(lowerCaseQuery, start);
+      if (matchIndex == -1) {
+        // No more matches, add the rest of the text
+        if (start < text.length) {
+          spans.add(TextSpan(text: text.substring(start), style: normalStyle));
+        }
+        break;
+      }
+      
+      // Add text before match
+      if (matchIndex > start) {
+        spans.add(TextSpan(text: text.substring(start, matchIndex), style: normalStyle));
+      }
+      
+      // Add highlighted match
+      final int end = matchIndex + query.length;
+      spans.add(TextSpan(text: text.substring(matchIndex, end), style: highlightStyle));
+      
+      // Update start position for next iteration
+      start = end;
+    }
+    
+    return TextSpan(children: spans);
   }
 }
