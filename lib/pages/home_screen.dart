@@ -73,6 +73,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   autofocus: true,
                 )
                 : Text('Meal Planner'),
+
         actions: [
           // Search icon
           IconButton(
@@ -89,6 +90,7 @@ class _HomeScreenState extends State<HomeScreen> {
             },
           ),
         ],
+        automaticallyImplyLeading: false,
       ),
       body: _getBody(),
       bottomNavigationBar: BottomNavigationBar(
@@ -175,296 +177,304 @@ class _HomeScreenState extends State<HomeScreen> {
         : _buildMealList();
   }
 
-  // Stream builder for displaying all meals
-  Widget _buildMealList() {
-    return StreamBuilder<QuerySnapshot>(
-      stream: _firestoreService.getMeals(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator());
-        }
+Widget _buildMealList() {
+  final userId = FirebaseAuth.instance.currentUser?.uid;
 
-        if (snapshot.hasError) {
-          return Center(
-            child: Text(
-              'Error loading meals: ${snapshot.error}',
-              style: TextStyle(color: Colors.red),
-            ),
-          );
-        }
+  if (userId == null) {
+    return Center(child: Text("User not logged in"));
+  }
 
-        final meals = snapshot.data?.docs ?? [];
+  return FutureBuilder(
+    future: Future.wait([
+      // Query for meals with 'user_id'
+      FirebaseFirestore.instance
+          .collection('meals')
+          .where('user_id', isEqualTo: userId)
+          .get(),
+      // Query for meals with 'userId'
+      FirebaseFirestore.instance
+          .collection('meals')
+          .where('userId', isEqualTo: userId)
+          .get(),
+    ]),
+    builder: (context, snapshot) {
+      if (snapshot.connectionState == ConnectionState.waiting) {
+        return Center(child: CircularProgressIndicator());
+      }
 
-        if (meals.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.no_food, size: 64, color: Colors.grey),
-                SizedBox(height: 16),
-                Text(
-                  'No meals logged yet',
-                  style: TextStyle(fontSize: 18, color: Colors.grey),
-                ),
-                SizedBox(height: 16),
-                ElevatedButton.icon(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => AddMealScreen()),
-                    ).then((_) {
-                      setState(() {});
-                    });
-                  },
-                  icon: Icon(Icons.add),
-                  label: Text('Add your first meal'),
-                ),
-              ],
-            ),
-          );
-        }
+      if (snapshot.hasError) {
+        return Center(
+          child: Text(
+            'Error loading meals: ${snapshot.error}',
+            style: TextStyle(color: Colors.red),
+          ),
+        );
+      }
 
-        return ListView.builder(
-          itemCount: meals.length,
-          itemBuilder: (context, index) {
-            final mealDoc = meals[index];
-            final mealData = mealDoc.data() as Map<String, dynamic>?;
-            final mealId = mealDoc.id;
+      // Combine the results of both queries
+      final mealsFromUserId = snapshot.data?[0].docs ?? [];
+      final mealsFromUserId2 = snapshot.data?[1].docs ?? [];
+      final combinedMeals = [...mealsFromUserId, ...mealsFromUserId2];
 
-            if (mealData == null) {
-              return SizedBox.shrink();
-            }
-
-            final title = mealData['title'] ?? 'Untitled Meal';
-            final description = mealData['description'] ?? 'No description';
-            final time = mealData['time'] ?? '';
-            final mealType = mealData['mealType'] ?? '';
-            final isLogged = mealData['logged'] ?? false;
-
-            // Get meal type icon
-            IconData mealTypeIcon = _getMealTypeIcon(mealType);
-
-            return Dismissible(
-              key: Key(mealId),
-              background: Container(
-                color: Colors.red,
-                alignment: Alignment.centerRight,
-                padding: EdgeInsets.symmetric(horizontal: 20),
-                child: Icon(Icons.delete, color: Colors.white),
+      if (combinedMeals.isEmpty) {
+        return Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.no_food, size: 64, color: Colors.grey),
+              SizedBox(height: 16),
+              Text(
+                'No meals logged yet',
+                style: TextStyle(fontSize: 18, color: Colors.grey),
               ),
-              direction: DismissDirection.endToStart,
-              confirmDismiss: (direction) async {
-                return await showDialog(
-                  context: context,
-                  builder:
-                      (context) => AlertDialog(
-                        title: Text('Delete Meal'),
-                        content: Text(
-                          'Are you sure you want to delete this meal?',
-                        ),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.of(context).pop(false),
-                            child: Text('Cancel'),
-                          ),
-                          TextButton(
-                            onPressed: () => Navigator.of(context).pop(true),
-                            child: Text('Delete'),
-                            style: TextButton.styleFrom(
-                              foregroundColor: Colors.red,
-                            ),
-                          ),
-                        ],
-                      ),
-                );
-              },
-              onDismissed: (direction) async {
-                try {
-                  await _firestoreService.deleteMeal(mealId);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Meal deleted'),
-                      action: SnackBarAction(
-                        label: 'Undo',
-                        onPressed: () async {
-                          // Attempt to re-add the deleted meal
-                          await _firestoreService.addMeal(
-                            title: mealData['title'] ?? '',
-                            description: mealData['description'] ?? '',
-                            time: mealData['time'] ?? '',
-                            mealType: mealData['mealType'],
-                          );
-                        },
-                      ),
-                    ),
-                  );
-                } catch (e) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Error deleting meal: $e')),
-                  );
-                }
-              },
-              child: ListTile(
-                leading: CircleAvatar(
-                  backgroundColor: _getMealTypeColor(mealType),
-                  child: Icon(mealTypeIcon, color: Colors.white),
-                ),
-                title: Text(title),
-                subtitle: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(description),
-                    SizedBox(height: 4),
-                    Row(
-                      children: [
-                        Icon(Icons.access_time, size: 16, color: Colors.grey),
-                        SizedBox(width: 4),
-                        Text(
-                          time,
-                          style: TextStyle(fontSize: 13, color: Colors.grey),
-                        ),
-                        SizedBox(width: 16),
-                        if (isLogged)
-                          Chip(
-                            label: Text('Logged'),
-                            backgroundColor: Colors.green.withOpacity(0.2),
-                            labelStyle: TextStyle(
-                              fontSize: 12,
-                              color: Colors.green,
-                            ),
-                            materialTapTargetSize:
-                                MaterialTapTargetSize.shrinkWrap,
-                            padding: EdgeInsets.zero,
-                          ),
-                      ],
-                    ),
-                  ],
-                ),
-                isThreeLine: true,
-                onTap: () {
+              SizedBox(height: 16),
+              ElevatedButton.icon(
+                onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(
-                      builder:
-                          (context) => MealDetailsScreen(
-                            mealId: mealId,
-                            mealName: title,
-                            ingredients: description,
-                          ),
-                    ),
+                    MaterialPageRoute(builder: (context) => AddMealScreen()),
                   ).then((_) {
                     setState(() {});
                   });
                 },
+                icon: Icon(Icons.add),
+                label: Text('Add your first meal'),
+              ),
+            ],
+          ),
+        );
+      }
 
-                // Modify the trailing property in your ListTile within the _buildMealList() method
-                // Replace the existing trailing: IconButton(...) with this:
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      icon: Icon(Icons.edit),
-                      tooltip: 'Edit meal',
-                      onPressed: () {
-                        // Create a map with the meal data and ID for editing
-                        final editableMeal = {
-                          'id': mealId,
-                          'title': title,
-                          'description': description,
-                          'time': time,
-                          'mealType': mealType,
-                          'logged': isLogged,
-                        };
+      return ListView.builder(
+        itemCount: combinedMeals.length,
+        itemBuilder: (context, index) {
+          final mealDoc = combinedMeals[index];
+          final mealData = mealDoc.data() as Map<String, dynamic>?;
 
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder:
-                                (context) =>
-                                    AddMealScreen(mealToEdit: editableMeal),
-                          ),
-                        ).then((_) {
-                          setState(() {});
-                        });
-                      },
+          if (mealData == null) {
+            return SizedBox.shrink();
+          }
+
+          final title = mealData['title'] ?? 'Untitled Meal';
+          final description = mealData['description'] ?? 'No description';
+          final time = mealData['time'] ?? '';
+          final mealType = mealData['mealType'] ?? '';
+          final isLogged = mealData['logged'] ?? false;
+
+          // Handle date, which might be a Timestamp or null
+          DateTime? date;
+          if (mealData['date'] != null) {
+            if (mealData['date'] is Timestamp) {
+              date = (mealData['date'] as Timestamp).toDate();
+            }
+          }
+
+          // Format date for display
+          final String dateStr =
+              date != null ? '${date.month}/${date.day}/${date.year}' : 'No date';
+
+          // Get meal type icon
+          IconData mealTypeIcon = _getMealTypeIcon(mealType);
+
+          return Dismissible(
+            key: Key(mealDoc.id),
+            background: Container(
+              color: Colors.red,
+              alignment: Alignment.centerRight,
+              padding: EdgeInsets.symmetric(horizontal: 20),
+              child: Icon(Icons.delete, color: Colors.white),
+            ),
+            direction: DismissDirection.endToStart,
+            confirmDismiss: (direction) async {
+              return await showDialog(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: Text('Delete Meal'),
+                  content: Text('Are you sure you want to delete this meal?'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(false),
+                      child: Text('Cancel'),
                     ),
-                    IconButton(
-                      icon: Icon(Icons.delete, color: Colors.red),
-                      tooltip: 'Delete meal',
-                      onPressed: () async {
-                        bool confirmDelete =
-                            await showDialog(
-                              context: context,
-                              builder:
-                                  (context) => AlertDialog(
-                                    title: Text('Delete Meal'),
-                                    content: Text(
-                                      'Are you sure you want to delete this meal?',
-                                    ),
-                                    actions: [
-                                      TextButton(
-                                        onPressed:
-                                            () => Navigator.of(
-                                              context,
-                                            ).pop(false),
-                                        child: Text('Cancel'),
-                                      ),
-                                      TextButton(
-                                        onPressed:
-                                            () =>
-                                                Navigator.of(context).pop(true),
-                                        child: Text('Delete'),
-                                        style: TextButton.styleFrom(
-                                          foregroundColor: Colors.red,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                            ) ??
-                            false;
-
-                        if (confirmDelete) {
-                          try {
-                            await _firestoreService.deleteMeal(mealId);
-                            // ignore: use_build_context_synchronously
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Meal deleted'),
-                                action: SnackBarAction(
-                                  label: 'Undo',
-                                  onPressed: () async {
-                                    // Attempt to re-add the deleted meal
-                                    await _firestoreService.addMeal(
-                                      title: mealData['title'] ?? '',
-                                      description:
-                                          mealData['description'] ?? '',
-                                      time: mealData['time'] ?? '',
-                                      mealType: mealData['mealType'],
-                                    );
-                                  },
-                                ),
-                              ),
-                            );
-                          } catch (e) {
-                            // ignore: use_build_context_synchronously
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Error deleting meal: $e'),
-                              ),
-                            );
-                          }
-                        }
-                      },
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(true),
+                      child: Text('Delete'),
+                      style: TextButton.styleFrom(
+                        foregroundColor: Colors.red,
+                      ),
                     ),
                   ],
                 ),
+              );
+            },
+            onDismissed: (direction) async {
+              try {
+                await _firestoreService.deleteMeal(mealDoc.id);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Meal deleted'),
+                    action: SnackBarAction(
+                      label: 'Undo',
+                      onPressed: () async {
+                        await _firestoreService.addMeal(
+                          title: mealData['title'] ?? '',
+                          description: mealData['description'] ?? '',
+                          time: mealData['time'] ?? '',
+                          mealType: mealData['mealType'],
+                          date: date ?? DateTime.now(),
+                        );
+                      },
+                    ),
+                  ),
+                );
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Error deleting meal: $e')),
+                );
+              }
+            },
+            child: ListTile(
+              leading: CircleAvatar(
+                backgroundColor: _getMealTypeColor(mealType),
+                child: Icon(mealTypeIcon, color: Colors.white),
               ),
-            );
-          },
-        );
-      },
-    );
-  }
+              title: Text(title),
+              subtitle: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(description),
+                  SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Icon(Icons.calendar_today, size: 16, color: Colors.grey),
+                      SizedBox(width: 4),
+                      Text(
+                        dateStr,
+                        style: TextStyle(fontSize: 13, color: Colors.grey),
+                      ),
+                      SizedBox(width: 16),
+                      Icon(Icons.access_time, size: 16, color: Colors.grey),
+                      SizedBox(width: 4),
+                      Text(time, style: TextStyle(fontSize: 13, color: Colors.grey)),
+                      SizedBox(width: 16),
+                      if (isLogged)
+                        Chip(
+                          label: Text('Logged'),
+                          backgroundColor: Colors.green.withOpacity(0.2),
+                          labelStyle: TextStyle(fontSize: 12, color: Colors.green),
+                          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          padding: EdgeInsets.zero,
+                        ),
+                    ],
+                  ),
+                ],
+              ),
+              isThreeLine: true,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => MealDetailsScreen(
+                      mealId: mealDoc.id,
+                      mealName: title,
+                      ingredients: description,
+                    ),
+                  ),
+                ).then((_) {
+                  setState(() {});
+                });
+              },
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: Icon(Icons.edit),
+                    tooltip: 'Edit meal',
+                    onPressed: () {
+                      final editableMeal = {
+                        'id': mealDoc.id,
+                        'title': title,
+                        'description': description,
+                        'time': time,
+                        'mealType': mealType,
+                        'logged': isLogged,
+                        'date': mealData['date'],
+                      };
+
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              AddMealScreen(mealToEdit: editableMeal),
+                        ),
+                      ).then((_) {
+                        setState(() {});
+                      });
+                    },
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.delete, color: Colors.red),
+                    tooltip: 'Delete meal',
+                    onPressed: () async {
+                      bool confirmDelete = await showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: Text('Delete Meal'),
+                          content: Text('Are you sure you want to delete this meal?'),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.of(context).pop(false),
+                              child: Text('Cancel'),
+                            ),
+                            TextButton(
+                              onPressed: () => Navigator.of(context).pop(true),
+                              child: Text('Delete'),
+                              style: TextButton.styleFrom(
+                                foregroundColor: Colors.red,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ) ?? false;
+
+                      if (confirmDelete) {
+                        try {
+                          await _firestoreService.deleteMeal(mealDoc.id);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Meal deleted'),
+                              action: SnackBarAction(
+                                label: 'Undo',
+                                onPressed: () async {
+                                  await _firestoreService.addMeal(
+                                    title: mealData['title'] ?? '',
+                                    description: mealData['description'] ?? '',
+                                    time: mealData['time'] ?? '',
+                                    mealType: mealData['mealType'],
+                                    date: date ?? DateTime.now(),
+                                  );
+                                },
+                              ),
+                            ),
+                          );
+                        } catch (e) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Error deleting meal: $e')),
+                          );
+                        }
+                      }
+                    },
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+    },
+  );
+}
+
 
   // Helper method to get meal type icon
   IconData _getMealTypeIcon(String mealType) {
@@ -564,6 +574,20 @@ class _HomeScreenState extends State<HomeScreen> {
             final mealType = mealData['mealType'] ?? '';
             final isLogged = mealData['logged'] ?? false;
 
+            // Handle date, which might be a Timestamp or null
+            DateTime? date;
+            if (mealData['date'] != null) {
+              if (mealData['date'] is Timestamp) {
+                date = (mealData['date'] as Timestamp).toDate();
+              }
+            }
+
+            // Format date for display
+            final String dateStr =
+                date != null
+                    ? '${date.month}/${date.day}/${date.year}'
+                    : 'No date';
+
             // Get meal type icon
             IconData mealTypeIcon = _getMealTypeIcon(mealType);
 
@@ -580,6 +604,13 @@ class _HomeScreenState extends State<HomeScreen> {
                   SizedBox(height: 4),
                   Row(
                     children: [
+                      Icon(Icons.calendar_today, size: 16, color: Colors.grey),
+                      SizedBox(width: 4),
+                      Text(
+                        dateStr,
+                        style: TextStyle(fontSize: 13, color: Colors.grey),
+                      ),
+                      SizedBox(width: 16),
                       Icon(Icons.access_time, size: 16, color: Colors.grey),
                       SizedBox(width: 4),
                       Text(
@@ -625,8 +656,4 @@ class _HomeScreenState extends State<HomeScreen> {
       },
     );
   }
-
-  // Profile tab content
-
-  // Add this method to show the edit profile dialog
 }

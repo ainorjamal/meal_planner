@@ -7,7 +7,6 @@ class AuthService {
   final FirebaseAuth firebaseAuth = FirebaseAuth.instance;
 
   User? get currentUser => firebaseAuth.currentUser;
-
   Stream<User?> get authStateChanges => firebaseAuth.authStateChanges();
 
   Future<UserCredential> signIn({
@@ -21,13 +20,20 @@ class AuthService {
   }
 
   Future<UserCredential> createAccount({
+    required String name,
     required String email,
     required String password,
   }) async {
-    return await firebaseAuth.createUserWithEmailAndPassword(
-      email: email,
-      password: password,
-    );
+    UserCredential userCredential = await firebaseAuth
+        .createUserWithEmailAndPassword(email: email, password: password);
+    try {
+      await userCredential.user?.updateDisplayName(name);
+    } catch (e) {
+      debugPrint('⚠️ Failed to update display name: $e');
+      // This shouldn't block the registration, so we just log the warning.
+    }
+
+    return userCredential;
   }
 
   Future<void> signOut() async {
