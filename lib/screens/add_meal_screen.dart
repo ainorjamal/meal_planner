@@ -1,5 +1,7 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import '../services/firestore.dart';
+import '../services/notification_service.dart';
 
 // Custom color palette
 class AppColors {
@@ -580,15 +582,20 @@ class _AddMealScreenState extends State<AddMealScreen> {
             time.isNotEmpty &&
             mealType != null &&
             mealType.isNotEmpty) {
+          String mealId;
+
           if (widget.mealToEdit == null) {
-            await _firestoreService.addMeal(
+            // Add new meal
+            DocumentReference docRef = await _firestoreService.addMeal(
               title: title,
               description: description,
               time: time,
               date: _selectedDate,
               mealType: mealType,
             );
+            mealId = docRef.id;
           } else {
+            // Update existing meal
             await _firestoreService.updateMeal(
               mealId: widget.mealToEdit!['id'],
               title: title,
@@ -598,7 +605,50 @@ class _AddMealScreenState extends State<AddMealScreen> {
               mealType: mealType,
               logged: widget.mealToEdit!['logged'] ?? false,
             );
+            mealId = widget.mealToEdit!['id'];
           }
+
+          // Schedule notification for this meal
+          try {
+            // Parse time string
+            final timeParts = time.split(' ');
+            if (timeParts.length == 2) {
+              final hourMinute = timeParts[0].split(':');
+              int hour = int.parse(hourMinute[0]);
+              final int minute = int.parse(hourMinute[1]);
+              final String amPm = timeParts[1].toUpperCase();
+
+              // Convert to 24-hour format
+              if (amPm == 'PM' && hour < 12) {
+                hour += 12;
+              } else if (amPm == 'AM' && hour == 12) {
+                hour = 0;
+              }
+
+              // Create full DateTime for the meal
+              final DateTime scheduledDateTime = DateTime(
+                _selectedDate.year,
+                _selectedDate.month,
+                _selectedDate.day,
+                hour,
+                minute,
+              );
+
+              // Schedule the notification
+              final notificationService = NotificationService();
+              await notificationService.scheduleMealNotification(
+                id: notificationService.createUniqueId(mealId),
+                title: 'Meal Reminder',
+                mealName: title,
+                mealType: mealType,
+                scheduledDate: scheduledDateTime,
+              );
+            }
+          } catch (e) {
+            print('Error scheduling notification: $e');
+            // Don't prevent saving the meal if notification fails
+          }
+
           Navigator.pop(context, true);
         } else {
           ScaffoldMessenger.of(context).showSnackBar(

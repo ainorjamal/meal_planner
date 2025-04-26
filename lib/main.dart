@@ -13,17 +13,23 @@ import 'pages/mealHistory_screen.dart';
 import 'pages/helpAndSupport_screen.dart';
 import 'pages/settings_screen.dart';
 import 'package:provider/provider.dart';
-import 'providers/theme_provider.dart';  // Import the theme provider
+import 'providers/theme_provider.dart'; // Import the theme provider
 import 'pages/theme_screen.dart';
 import 'pages/notifications_screen.dart';
 import 'pages/preferences_screen.dart';
+import 'services/notification_service.dart';
+import 'services/firestore.dart'; // Add this import
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  
+
+  // Initialize notification service
+  final NotificationService notificationService = NotificationService();
+  await notificationService.initialize();
+
+  // Initialize app with providers
   runApp(
-    // Provide the ThemeProvider at the root level
     ChangeNotifierProvider(
       create: (context) => ThemeProvider(),
       child: MealPlannerApp(),
@@ -31,14 +37,59 @@ void main() async {
   );
 }
 
-class MealPlannerApp extends StatelessWidget {
+class MealPlannerApp extends StatefulWidget {
+  @override
+  _MealPlannerAppState createState() => _MealPlannerAppState();
+}
+
+class _MealPlannerAppState extends State<MealPlannerApp>
+    with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+
+    // Schedule notifications for current user's meals if they're logged in
+    _scheduleNotificationsIfLoggedIn();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      // App came to foreground, reschedule notifications if logged in
+      _scheduleNotificationsIfLoggedIn();
+    }
+  }
+
+  // Helper method to schedule notifications if the user is logged in
+  Future<void> _scheduleNotificationsIfLoggedIn() async {
+    final User? currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser != null) {
+      try {
+        final firestoreService = FirestoreService();
+        await firestoreService.scheduleNotificationsForAllUserMeals();
+        debugPrint(
+          'Scheduled notifications for all meals of user: ${currentUser.uid}',
+        );
+      } catch (e) {
+        debugPrint('Error scheduling notifications: $e');
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final themeProvider = Provider.of<ThemeProvider>(context);  // Get theme provider state
+    final themeProvider = Provider.of<ThemeProvider>(context);
 
     return MaterialApp(
       title: 'Meal Planner',
-      theme: themeProvider.isDarkMode ? ThemeData.dark() : ThemeData.light(),  // Apply theme based on the provider
+      theme: themeProvider.isDarkMode ? ThemeData.dark() : ThemeData.light(),
       home: AuthWrapper(),
       routes: {
         '/login': (context) => LoginScreen(),
@@ -58,7 +109,7 @@ class MealPlannerApp extends StatelessWidget {
   }
 }
 
-// A wrapper widget to handle auth state changes
+// Update AuthWrapper to reschedule notifications on login
 class AuthWrapper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -69,11 +120,25 @@ class AuthWrapper extends StatelessWidget {
           final user = snapshot.data;
           if (user == null) {
             return LoginScreen();
+          } else {
+            // User is logged in, schedule notifications
+            _scheduleUserMealNotifications(user.uid);
+            return HomeScreen();
           }
-          return HomeScreen();
         }
         return const Scaffold(body: Center(child: CircularProgressIndicator()));
       },
     );
+  }
+
+  // Schedule notifications when user logs in
+  Future<void> _scheduleUserMealNotifications(String userId) async {
+    try {
+      final firestoreService = FirestoreService();
+      await firestoreService.scheduleNotificationsForAllUserMeals();
+      debugPrint('Scheduled notifications for all meals of user: $userId');
+    } catch (e) {
+      debugPrint('Error scheduling notifications on login: $e');
+    }
   }
 }
