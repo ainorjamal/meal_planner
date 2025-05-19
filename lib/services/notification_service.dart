@@ -3,6 +3,7 @@ import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz_init;
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:permission_handler/permission_handler.dart';  // Added import
 
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
@@ -13,7 +14,24 @@ class NotificationService {
 
   NotificationService._internal();
 
+  // New method to request notification permission on Android 13+
+  Future<void> _requestNotificationPermission() async {
+    if (await Permission.notification.isDenied) {
+      final status = await Permission.notification.request();
+      if (status.isGranted) {
+        debugPrint('Notification permission granted');
+      } else {
+        debugPrint('Notification permission denied');
+      }
+    } else {
+      debugPrint('Notification permission already granted');
+    }
+  }
+
   Future<void> initialize() async {
+    // Request notification permission on Android 13+
+    await _requestNotificationPermission();
+
     // Initialize timezone database
     tz_init.initializeTimeZones();
 
@@ -40,17 +58,15 @@ class NotificationService {
       onDidReceiveNotificationResponse: onDidReceiveNotificationResponse,
     );
 
-    // Request permissions for iOS
+    // Request permissions for iOS (still keep this)
     await flutterLocalNotificationsPlugin
         .resolvePlatformSpecificImplementation<
-          IOSFlutterLocalNotificationsPlugin
-        >()
+            IOSFlutterLocalNotificationsPlugin>()
         ?.requestPermissions(alert: true, badge: true, sound: true);
   }
 
   // Handle notification tapped
   void onDidReceiveNotificationResponse(NotificationResponse response) {
-    // Handle notification tap
     if (response.payload != null) {
       debugPrint('Notification payload: ${response.payload}');
       // Navigate to specific meal or calendar page based on payload
@@ -67,39 +83,34 @@ class NotificationService {
     // Display a dialog with the notification details
   }
 
-  // Schedule a meal notification
   Future<void> scheduleMealNotification({
     required int id,
     required String title,
     required String mealName,
     required String mealType,
     required DateTime scheduledDate,
-    int reminderMinutes =
-        0, // Changed from 30 to 0 for notification at exact time
+    int reminderMinutes = 0,
   }) async {
-    // Calculate notification time
     final reminderTime = scheduledDate.subtract(
       Duration(minutes: reminderMinutes),
     );
 
-    // Don't schedule if the time is in the past
     if (reminderTime.isBefore(DateTime.now())) {
       debugPrint('Cannot schedule notification in the past: $reminderTime');
       return;
     }
 
-    // Create notification details
     const AndroidNotificationDetails androidDetails =
         AndroidNotificationDetails(
-          'meal_notifications', // channel id
-          'Meal Reminders', // channel name
-          channelDescription: 'Notifications for upcoming meals',
-          importance: Importance.high,
-          priority: Priority.high,
-          enableVibration: true,
-          color: Color(0xFF6750A4), // Your purple color
-          icon: '@mipmap/ic_launcher',
-        );
+      'meal_notifications',
+      'Meal Reminders',
+      channelDescription: 'Notifications for upcoming meals',
+      importance: Importance.high,
+      priority: Priority.high,
+      enableVibration: true,
+      color: Color(0xFF6750A4),
+      icon: '@mipmap/ic_launcher',
+    );
 
     const DarwinNotificationDetails iOSDetails = DarwinNotificationDetails(
       presentAlert: true,
@@ -112,7 +123,6 @@ class NotificationService {
       iOS: iOSDetails,
     );
 
-    // Format notification message based on meal type
     String body = 'Time for your $mealType: $mealName';
 
     await flutterLocalNotificationsPlugin.zonedSchedule(
@@ -124,8 +134,7 @@ class NotificationService {
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
       uiLocalNotificationDateInterpretation:
           UILocalNotificationDateInterpretation.absoluteTime,
-
-      payload: 'meal_$id', // Can be used to navigate to the specific meal
+      payload: 'meal_$id',
     );
 
     debugPrint(
@@ -133,26 +142,21 @@ class NotificationService {
     );
   }
 
-  // Create a unique ID based on meal details
   int createUniqueId(String mealId) {
     return mealId.hashCode;
   }
 
-  // Cancel a specific notification
   Future<void> cancelNotification(int id) async {
     await flutterLocalNotificationsPlugin.cancel(id);
   }
 
-  // Cancel all notifications
   Future<void> cancelAllNotifications() async {
     await flutterLocalNotificationsPlugin.cancelAll();
   }
 
-  // Schedule notifications for all upcoming meals
   Future<void> scheduleAllMealNotifications(
     List<QueryDocumentSnapshot> mealData,
   ) async {
-    // Cancel all existing notifications first
     await cancelAllNotifications();
 
     for (var doc in mealData) {
@@ -161,10 +165,8 @@ class NotificationService {
 
       if (data['date'] != null && data['time'] != null) {
         try {
-          // Convert Firestore Timestamp to DateTime
           final DateTime mealDate = (data['date'] as Timestamp).toDate();
 
-          // Parse the time string (assuming format like "7:30 PM")
           final timeString = data['time'] as String;
           final timeParts = timeString.split(' ');
           if (timeParts.length == 2) {
@@ -173,14 +175,12 @@ class NotificationService {
             final int minute = int.parse(hourMinute[1]);
             final String amPm = timeParts[1].toUpperCase();
 
-            // Convert to 24-hour format
             if (amPm == 'PM' && hour < 12) {
               hour += 12;
             } else if (amPm == 'AM' && hour == 12) {
               hour = 0;
             }
 
-            // Create full DateTime for the meal
             final DateTime scheduledDateTime = DateTime(
               mealDate.year,
               mealDate.month,
@@ -189,15 +189,13 @@ class NotificationService {
               minute,
             );
 
-            // Only schedule if the meal is in the future
             if (scheduledDateTime.isAfter(DateTime.now())) {
               await scheduleMealNotification(
                 id: createUniqueId(id),
-                title: 'Meal Time', // Changed from 'Meal Reminder'
+                title: 'Meal Time',
                 mealName: data['title'] ?? 'Your Meal',
                 mealType: data['mealType'] ?? 'Meal',
                 scheduledDate: scheduledDateTime,
-                // No reminderMinutes parameter means it will use the default (0)
               );
             }
           }
