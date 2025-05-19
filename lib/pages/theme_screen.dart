@@ -8,9 +8,15 @@ class ThemeSettingsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
-    
+    final isDarkMode = themeProvider.isDarkMode;
+
+    final backgroundColor = isDarkMode ? Colors.black : Colors.grey[50];
+    final textColor = isDarkMode ? Colors.white : Colors.black;
+    final subtitleColor = isDarkMode ? Colors.white70 : Colors.black87;
+    final cardColor = isDarkMode ? const Color(0xFF1c1c1e) : Colors.white;
+
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: backgroundColor,
       appBar: AppBar(
         backgroundColor: const Color(0xFF6a4c93),
         foregroundColor: Colors.white,
@@ -90,11 +96,12 @@ class ThemeSettingsPage extends StatelessWidget {
               ),
             ),
           ),
-          
+
           // Theme selector card
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: Card(
+              color: cardColor,
               elevation: 2,
               shadowColor: Colors.black.withOpacity(0.1),
               shape: RoundedRectangleBorder(
@@ -105,11 +112,12 @@ class ThemeSettingsPage extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Choose Theme',
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
+                        color: textColor,
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -119,10 +127,10 @@ class ThemeSettingsPage extends StatelessWidget {
                           context: context,
                           title: 'Light',
                           icon: Icons.light_mode,
-                          isSelected: !themeProvider.isDarkMode,
+                          isSelected: !isDarkMode,
                           color: Colors.amber,
                           onTap: () {
-                            if (themeProvider.isDarkMode) {
+                            if (isDarkMode) {
                               themeProvider.toggleTheme();
                             }
                           },
@@ -132,10 +140,10 @@ class ThemeSettingsPage extends StatelessWidget {
                           context: context,
                           title: 'Dark',
                           icon: Icons.dark_mode,
-                          isSelected: themeProvider.isDarkMode,
+                          isSelected: isDarkMode,
                           color: Colors.indigo,
                           onTap: () {
-                            if (!themeProvider.isDarkMode) {
+                            if (!isDarkMode) {
                               themeProvider.toggleTheme();
                             }
                           },
@@ -151,25 +159,26 @@ class ThemeSettingsPage extends StatelessWidget {
                             color: Colors.deepPurple.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(10),
                           ),
-                          child: const Icon(
+                          child: Icon(
                             Icons.brightness_medium,
-                            color: Colors.deepPurple,
+                            color: isDarkMode ? Colors.white : Colors.deepPurple,
                             size: 22,
                           ),
                         ),
                         const SizedBox(width: 16),
-                        const Expanded(
+                        Expanded(
                           child: Text(
                             'Dark Mode',
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
+                              color: textColor,
                             ),
                           ),
                         ),
                         Switch(
-                          value: themeProvider.isDarkMode,
-                          onChanged: (bool value) {
+                          value: isDarkMode,
+                          onChanged: (_) {
                             themeProvider.toggleTheme();
                           },
                           activeColor: const Color(0xFF6a4c93),
@@ -181,11 +190,12 @@ class ThemeSettingsPage extends StatelessWidget {
               ),
             ),
           ),
-          
+
           // Tips card
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Card(
+              color: cardColor,
               elevation: 1,
               shadowColor: Colors.black.withOpacity(0.1),
               shape: RoundedRectangleBorder(
@@ -204,28 +214,29 @@ class ThemeSettingsPage extends StatelessWidget {
                             color: Colors.teal.withOpacity(0.2),
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          child: const Icon(
+                          child: Icon(
                             Icons.lightbulb_outline,
-                            color: Colors.teal,
+                            color: isDarkMode ? Colors.tealAccent : Colors.teal,
                             size: 20,
                           ),
                         ),
                         const SizedBox(width: 12),
-                        const Text(
+                        Text(
                           'Did you know?',
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
+                            color: textColor,
                           ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 12),
-                    const Text(
+                    Text(
                       'Dark mode can help reduce eye strain and save battery life on devices with OLED screens.',
                       style: TextStyle(
                         fontSize: 14,
-                        color: Colors.black87,
+                        color: subtitleColor,
                       ),
                       textAlign: TextAlign.justify,
                     ),
@@ -238,7 +249,7 @@ class ThemeSettingsPage extends StatelessWidget {
       ),
     );
   }
-  
+
   Widget _buildThemeOption({
     required BuildContext context,
     required String title,

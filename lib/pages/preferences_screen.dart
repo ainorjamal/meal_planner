@@ -21,14 +21,17 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF6a4c93),
-        foregroundColor: Colors.white,
+        backgroundColor: theme.colorScheme.primary,
+        foregroundColor: theme.colorScheme.onPrimary,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_rounded, color: Colors.white),
+          icon: Icon(Icons.arrow_back_ios_rounded, color: theme.colorScheme.onPrimary),
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: const Text(
@@ -48,11 +51,11 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage> {
             child: Container(
               width: double.infinity,
               decoration: BoxDecoration(
-                color: const Color(0xFF6a4c93),
+                color: theme.colorScheme.primary,
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
+                    color: Colors.black.withOpacity(isDark ? 0.7 : 0.1),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
@@ -78,21 +81,19 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage> {
                     const SizedBox(width: 16),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
+                      children: [
                         Text(
                           'Preferences',
-                          style: TextStyle(
+                          style: theme.textTheme.titleLarge?.copyWith(
                             color: Colors.white,
-                            fontSize: 20,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        SizedBox(height: 4),
+                        const SizedBox(height: 4),
                         Text(
                           'Customize your experience',
-                          style: TextStyle(
+                          style: theme.textTheme.titleMedium?.copyWith(
                             color: Colors.white70,
-                            fontSize: 16,
                           ),
                         ),
                       ],
@@ -109,35 +110,37 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage> {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               children: [
                 _buildSettingsCard(
+                  context: context,
                   title: 'Language Settings',
                   icon: Icons.translate,
                   iconColor: Colors.green,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
+                      Text(
                         'Select your preferred language:',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.black87,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.textTheme.bodyMedium?.color,
                         ),
                       ),
                       const SizedBox(height: 12),
                       Container(
                         decoration: BoxDecoration(
-                          border: Border.all(color: Colors.grey.shade300),
+                          border: Border.all(color: isDark ? Colors.grey.shade700 : Colors.grey.shade300),
                           borderRadius: BorderRadius.circular(8),
+                          color: theme.cardColor,
                         ),
                         child: DropdownButtonHideUnderline(
                           child: ButtonTheme(
                             alignedDropdown: true,
                             child: DropdownButton<String>(
+                              dropdownColor: theme.cardColor,
                               isExpanded: true,
                               value: _selectedLanguage,
                               items: languages.map((String lang) {
                                 return DropdownMenuItem<String>(
                                   value: lang,
-                                  child: Text(lang),
+                                  child: Text(lang, style: TextStyle(color: theme.textTheme.bodyLarge?.color)),
                                 );
                               }).toList(),
                               onChanged: (String? newLang) {
@@ -147,7 +150,7 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage> {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
                                     content: Text('Language set to $_selectedLanguage'),
-                                    backgroundColor: const Color(0xFF6a4c93),
+                                    backgroundColor: theme.colorScheme.primary,
                                     behavior: SnackBarBehavior.floating,
                                   ),
                                 );
@@ -159,39 +162,41 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage> {
                     ],
                   ),
                 ),
-                
+
                 const SizedBox(height: 16),
-                
+
                 _buildSettingsCard(
+                  context: context,
                   title: 'Timezone Settings',
                   icon: Icons.access_time,
                   iconColor: Colors.blue,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
+                      Text(
                         'Select your timezone:',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.black87,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.textTheme.bodyMedium?.color,
                         ),
                       ),
                       const SizedBox(height: 12),
                       Container(
                         decoration: BoxDecoration(
-                          border: Border.all(color: Colors.grey.shade300),
+                          border: Border.all(color: isDark ? Colors.grey.shade700 : Colors.grey.shade300),
                           borderRadius: BorderRadius.circular(8),
+                          color: theme.cardColor,
                         ),
                         child: DropdownButtonHideUnderline(
                           child: ButtonTheme(
                             alignedDropdown: true,
                             child: DropdownButton<String>(
+                              dropdownColor: theme.cardColor,
                               isExpanded: true,
                               value: _selectedTimezone,
                               items: timezones.map((String tz) {
                                 return DropdownMenuItem<String>(
                                   value: tz,
-                                  child: Text(tz),
+                                  child: Text(tz, style: TextStyle(color: theme.textTheme.bodyLarge?.color)),
                                 );
                               }).toList(),
                               onChanged: (String? newTz) {
@@ -201,7 +206,7 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage> {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
                                     content: Text('Timezone set to $_selectedTimezone'),
-                                    backgroundColor: const Color(0xFF6a4c93),
+                                    backgroundColor: theme.colorScheme.primary,
                                     behavior: SnackBarBehavior.floating,
                                   ),
                                 );
@@ -213,10 +218,11 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage> {
                     ],
                   ),
                 ),
-                
+
                 const SizedBox(height: 16),
-                
+
                 _buildSettingsCard(
+                  context: context,
                   title: 'Display Format',
                   icon: Icons.format_list_numbered,
                   iconColor: Colors.amber,
@@ -224,12 +230,14 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _buildFormatOption(
+                        context: context,
                         title: 'Date Format',
                         options: ['MM/DD/YYYY', 'DD/MM/YYYY', 'YYYY-MM-DD'],
                         selectedValue: 'MM/DD/YYYY',
                       ),
                       const SizedBox(height: 16),
                       _buildFormatOption(
+                        context: context,
                         title: 'Time Format',
                         options: ['12-hour', '24-hour'],
                         selectedValue: '12-hour',
@@ -246,14 +254,19 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage> {
   }
 
   Widget _buildSettingsCard({
+    required BuildContext context,
     required String title,
     required IconData icon,
     required Color iconColor,
     required Widget child,
   }) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Card(
+      color: theme.cardColor,
       elevation: 2,
-      shadowColor: Colors.black.withOpacity(0.1),
+      shadowColor: Colors.black.withOpacity(isDark ? 0.7 : 0.1),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
@@ -279,8 +292,7 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage> {
                 const SizedBox(width: 12),
                 Text(
                   title,
-                  style: const TextStyle(
-                    fontSize: 18,
+                  style: theme.textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -298,41 +310,45 @@ class _PreferencesSettingsPageState extends State<PreferencesSettingsPage> {
   }
 
   Widget _buildFormatOption({
-    required String title, 
+    required BuildContext context,
+    required String title,
     required List<String> options,
     required String selectedValue,
   }) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           title,
-          style: const TextStyle(
-            fontSize: 14,
+          style: theme.textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.w500,
           ),
         ),
         const SizedBox(height: 8),
         Container(
           decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey.shade300),
+            border: Border.all(color: isDark ? Colors.grey.shade700 : Colors.grey.shade300),
             borderRadius: BorderRadius.circular(8),
+            color: theme.cardColor,
           ),
           child: DropdownButtonHideUnderline(
             child: ButtonTheme(
               alignedDropdown: true,
               child: DropdownButton<String>(
+                dropdownColor: theme.cardColor,
                 isExpanded: true,
                 value: selectedValue,
                 items: options.map((String option) {
                   return DropdownMenuItem<String>(
                     value: option,
-                    child: Text(option),
+                    child: Text(option, style: TextStyle(color: theme.textTheme.bodyLarge?.color)),
                   );
                 }).toList(),
                 onChanged: (String? newValue) {
-                  // This is a placeholder - you would need to implement state management
-                  // to properly handle these new options
+                  // Placeholder for state update
                 },
               ),
             ),

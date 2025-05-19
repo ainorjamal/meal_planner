@@ -21,10 +21,26 @@ class HomeScreen extends StatefulWidget {
   _HomeScreenState createState() => _HomeScreenState();
 }
 
+class AppColors {
+  static const Color primaryPurple = Color(0xFF6750A4);
+  static const Color secondaryPurple = Color(0xFF9A82DB);
+  static const Color lightPurple = Color(0xFFE6DFFF);
+  static const Color darkPurple = Color(0xFF4A3880);
+  static const Color accentColor = Color(0xFFB69DF8);
+
+  // Meal type colors
+  static const Color breakfastColor = Color(0xFFFFA726);
+  static const Color lunchColor = Color(0xFF66BB6A);
+  static const Color dinnerColor = Color(0xFF5C6BC0);
+  static const Color snackColor = Color(0xFFBF8C6D);
+}
+
+
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
   bool _isDarkMode = false;
   Color primaryColor = Colors.green; // Your app's primary color
+  List<DocumentSnapshot> _meals = [];
 
   // Initialize Firestore service
   final FirestoreService _firestoreService = FirestoreService();
@@ -39,6 +55,108 @@ class _HomeScreenState extends State<HomeScreen> {
     _searchController.dispose();
     super.dispose();
   }
+
+  @override
+void initState() {
+  super.initState();
+  _loadAndFilterMeals();
+}
+
+Future<void> _loadAndFilterMeals() async {
+  final combinedMeals = await _firestoreService.fetchCombinedMeals();
+  await _autoMovePastMealsToHistory(combinedMeals);
+  setState(() {
+    _meals = combinedMeals.where((mealDoc) {
+      // Refresh the list with future meals only
+      final data = mealDoc.data() as Map<String, dynamic>?;
+      if (data == null) return false;
+      return !(data['date'] as Timestamp).toDate().isBefore(DateTime.now());
+    }).toList();
+  });
+}
+
+Future<void> _autoMovePastMealsToHistory(List<DocumentSnapshot> meals) async {
+  final now = DateTime.now();
+  final currentUser = FirebaseAuth.instance.currentUser;
+  if (currentUser == null) return;
+
+  for (var mealDoc in meals) {
+    final mealData = mealDoc.data() as Map<String, dynamic>?;
+    if (mealData == null || mealData['date'] == null || mealData['time'] == null) continue;
+
+    // Check if meal belongs to the current user
+    final mealUserId = mealData['user_id'] ?? mealData['user_id'];
+    if (mealUserId != currentUser.uid) {
+      print('Skipping ${mealDoc.id} - not user\'s meal.');
+      continue;
+    }
+
+    // Parse Firestore timestamp
+    if (mealData['date'] is! Timestamp) {
+      print('Skipping ${mealDoc.id} - invalid or missing date.');
+      continue;
+    }
+    final date = (mealData['date'] as Timestamp).toDate();
+
+    // Parse 12-hour time string
+    final timeStr = mealData['time'];
+    final timeParts = timeStr.split(' ');
+    if (timeParts.length != 2) continue;
+
+    final hourMinute = timeParts[0].split(':');
+    if (hourMinute.length != 2) continue;
+
+    int hour = int.tryParse(hourMinute[0]) ?? 0;
+    final int minute = int.tryParse(hourMinute[1]) ?? 0;
+    final String amPm = timeParts[1].toUpperCase();
+
+    if (amPm == 'PM' && hour < 12) {
+      hour += 12;
+    } else if (amPm == 'AM' && hour == 12) {
+      hour = 0;
+    }
+
+    final mealDateTime = DateTime(date.year, date.month, date.day, hour, minute);
+
+    // If the meal is in the past, move it to history
+    if (mealDateTime.isBefore(now)) {
+      try {
+        // Derive meal name and category with fallback
+        final mealName = mealData['meal_name'] ??
+            mealData['recipe_name'] ??
+            mealData['mealName'] ??
+            mealData['title'] ??
+            'Unnamed Meal';
+
+        final category = mealData['category'] ?? mealData['mealType'] ?? 'Uncategorized';
+
+        // Optionally: add metadata like movedAt
+        final updatedMealData = {
+          ...mealData,
+          'movedAt': Timestamp.now(),
+          'meal_name': mealName,
+          'category': category,
+        };
+
+        // Move to meal_history collection
+        await FirebaseFirestore.instance
+            .collection('meal_history')
+            .doc(mealDoc.id)
+            .set(updatedMealData);
+
+        // Delete from original meals collection
+        await FirebaseFirestore.instance
+            .collection('meals')
+            .doc(mealDoc.id)
+            .delete();
+
+        print("Moved meal '${mealDoc.id}' to history.");
+      } catch (e) {
+        print("Failed to move meal to history: $e");
+      }
+    }
+  }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -95,7 +213,7 @@ class _HomeScreenState extends State<HomeScreen> {
       body: _getBody(),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
-        selectedItemColor: primaryColor,
+        selectedItemColor: AppColors.primaryPurple,
         unselectedItemColor:
             _isDarkMode ? Colors.grey.shade400 : Colors.grey.shade500,
         backgroundColor: _isDarkMode ? Colors.grey.shade900 : Colors.white,
@@ -245,10 +363,54 @@ Widget _buildMealList() {
         );
       }
 
+      final now = DateTime.now();
+
+final filteredMeals = combinedMeals.where((mealDoc) {
+  final mealData = mealDoc.data() as Map<String, dynamic>?;
+  if (mealData == null || mealData['date'] == null || mealData['time'] == null) return false;
+
+  // Convert Firestore Timestamp to DateTime
+  DateTime date;
+  if (mealData['date'] is Timestamp) {
+    date = (mealData['date'] as Timestamp).toDate();
+  } else {
+    return false;
+  }
+
+  // Parse 12-hour time with AM/PM
+  final timeStr = mealData['time'];
+  final timeParts = timeStr.split(' ');
+  if (timeParts.length != 2) return false;
+
+  final hourMinute = timeParts[0].split(':');
+  if (hourMinute.length != 2) return false;
+
+  int hour = int.tryParse(hourMinute[0]) ?? 0;
+  final int minute = int.tryParse(hourMinute[1]) ?? 0;
+  final String amPm = timeParts[1].toUpperCase();
+
+  if (amPm == 'PM' && hour < 12) {
+    hour += 12;
+  } else if (amPm == 'AM' && hour == 12) {
+    hour = 0;
+  }
+
+  final mealDateTime = DateTime(
+    date.year,
+    date.month,
+    date.day,
+    hour,
+    minute,
+  );
+
+  return mealDateTime.isAfter(now) || mealDateTime.isAtSameMomentAs(now);
+}).toList();
+
+
       return ListView.builder(
-        itemCount: combinedMeals.length,
+        itemCount: filteredMeals.length,
         itemBuilder: (context, index) {
-          final mealDoc = combinedMeals[index];
+          final mealDoc = filteredMeals[index];
           final mealData = mealDoc.data() as Map<String, dynamic>?;
 
           if (mealData == null) {
@@ -474,7 +636,6 @@ Widget _buildMealList() {
     },
   );
 }
-
 
   // Helper method to get meal type icon
   IconData _getMealTypeIcon(String mealType) {

@@ -5,28 +5,31 @@ class SettingsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final colorScheme = theme.colorScheme;
+
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF6a4c93),
-        foregroundColor: Colors.white,
+        backgroundColor: colorScheme.primary,
+        foregroundColor: colorScheme.onPrimary,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_rounded, color: Colors.white),
+          icon: Icon(Icons.arrow_back_ios_rounded, color: colorScheme.onPrimary),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: const Text(
+        title: Text(
           'App Settings',
-          style: TextStyle(
-            fontSize: 22,
+          style: theme.textTheme.titleLarge?.copyWith(
+            color: colorScheme.onPrimary,
             fontWeight: FontWeight.w700,
-            color: Colors.white,
           ),
         ),
         centerTitle: true,
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh),
+            icon: Icon(Icons.refresh, color: colorScheme.onPrimary),
             onPressed: () {
               // Refresh action
             },
@@ -35,21 +38,23 @@ class SettingsPage extends StatelessWidget {
       ),
       body: Column(
         children: [
-          // Enhanced Header Card
+          // Header Card
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Container(
               width: double.infinity,
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF6a4c93), Color(0xFF8e60c6)],
+                gradient: LinearGradient(
+                  colors: isDark
+                      ? [colorScheme.primary, colorScheme.primaryContainer]
+                      : [colorScheme.primary, colorScheme.secondary],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.deepPurple.withOpacity(0.2),
+                    color: colorScheme.primary.withOpacity(0.2),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -66,11 +71,7 @@ class SettingsPage extends StatelessWidget {
                         color: Colors.white.withOpacity(0.15),
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(
-                        Icons.settings,
-                        color: Colors.white,
-                        size: 26,
-                      ),
+                      child: Icon(Icons.settings, color: Colors.white, size: 26),
                     ),
                     const SizedBox(width: 16),
                     Column(
@@ -108,7 +109,7 @@ class SettingsPage extends StatelessWidget {
                 _buildSettingCard(
                   context,
                   icon: Icons.color_lens,
-                  iconColor: Colors.deepPurple,
+                  iconColor: colorScheme.primary,
                   title: 'Theme',
                   subtitle: 'Light or Dark mode',
                   onTap: () => Navigator.pushNamed(context, '/theme'),
@@ -147,8 +148,12 @@ class SettingsPage extends StatelessWidget {
     required String subtitle,
     required VoidCallback onTap,
   }) {
+    final theme = Theme.of(context);
+    final cardColor = theme.cardColor;
+    final textColor = theme.textTheme.bodyLarge?.color ?? Colors.black;
+
     return Material(
-      color: Colors.white,
+      color: cardColor,
       borderRadius: BorderRadius.circular(16),
       elevation: 1,
       shadowColor: Colors.black.withOpacity(0.1),
@@ -166,11 +171,7 @@ class SettingsPage extends StatelessWidget {
                   color: iconColor.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(14),
                 ),
-                child: Icon(
-                  icon,
-                  color: iconColor,
-                  size: 24,
-                ),
+                child: Icon(icon, color: iconColor, size: 24),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -179,26 +180,22 @@ class SettingsPage extends StatelessWidget {
                   children: [
                     Text(
                       title,
-                      style: const TextStyle(
-                        fontSize: 17,
+                      style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w600,
+                        color: textColor,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       subtitle,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey[600],
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.hintColor,
                       ),
                     ),
                   ],
                 ),
               ),
-              Icon(
-                Icons.chevron_right,
-                color: Colors.grey[400],
-              ),
+              Icon(Icons.chevron_right, color: theme.dividerColor),
             ],
           ),
         ),

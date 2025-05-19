@@ -1221,10 +1221,11 @@ Future<Map<String, dynamic>> _fetchUserStatistics() async {
         'totalMeals': 0,
         'favorites': 0,
         'thisWeek': 0,
+        'streak': 0,
       };
     }
 
-    // Fetch total meals based on 'user_id' or 'userId'
+    // Fetch all meals for both field variations
     final mealsSnapshot1 = await FirebaseFirestore.instance
         .collection('meals')
         .where('user_id', isEqualTo: userId)
@@ -1235,20 +1236,16 @@ Future<Map<String, dynamic>> _fetchUserStatistics() async {
         .where('userId', isEqualTo: userId)
         .get();
 
-    print("mealSnapshot1 docs: ${mealsSnapshot1.docs.length}");
-    print("mealSnapshot2 docs: ${mealsSnapshot2.docs.length}");
+    final allMealDocs = [...mealsSnapshot1.docs, ...mealsSnapshot2.docs];
 
-    // Fetch favorites based only on 'user_id' (removed userId field)
+    // Favorites
     final favoritesSnapshot = await FirebaseFirestore.instance
         .collection('favorites')
         .where('user_id', isEqualTo: userId)
         .get();
 
-    print("favoritesSnapshot docs: ${favoritesSnapshot.docs.length}");
-
-    // Fetch meals from this week based on 'user_id' or 'userId'
+    // Meals this week
     final startOfWeek = DateTime.now().subtract(Duration(days: DateTime.now().weekday - 1));
-    
     final mealsThisWeekSnapshot1 = await FirebaseFirestore.instance
         .collection('meals')
         .where('user_id', isEqualTo: userId)
@@ -1261,22 +1258,38 @@ Future<Map<String, dynamic>> _fetchUserStatistics() async {
         .where('date', isGreaterThanOrEqualTo: startOfWeek)
         .get();
 
-    print("mealsThisWeekSnapshot1 docs: ${mealsThisWeekSnapshot1.docs.length}");
-    print("mealsThisWeekSnapshot2 docs: ${mealsThisWeekSnapshot2.docs.length}");
+    // ---------- STREAK LOGIC START ----------
+    final now = DateTime.now();
+    Set<String> uniqueMealDates = {};
 
-    // Combine the results of the snapshots for 'user_id' and 'userId'
-    final totalMeals = mealsSnapshot1.docs.length + mealsSnapshot2.docs.length;
+    for (final doc in allMealDocs) {
+      final data = doc.data() as Map<String, dynamic>?;
+      if (data != null && data['date'] is Timestamp) {
+        final date = (data['date'] as Timestamp).toDate();
+        final normalized = DateTime(date.year, date.month, date.day);
+        uniqueMealDates.add(normalized.toIso8601String());
+      }
+    }
+
+    int streak = 0;
+    DateTime currentDay = DateTime(now.year, now.month, now.day);
+
+    while (uniqueMealDates.contains(currentDay.toIso8601String())) {
+      streak++;
+      currentDay = currentDay.subtract(Duration(days: 1));
+    }
+    // ---------- STREAK LOGIC END ----------
+
+    final totalMeals = allMealDocs.length;
     final totalFavorites = favoritesSnapshot.docs.length;
-    final totalThisWeek = mealsThisWeekSnapshot1.docs.length + mealsThisWeekSnapshot2.docs.length;
-
-    print("Total Meals: $totalMeals");
-    print("Total Favorites: $totalFavorites");
-    print("Total Meals This Week: $totalThisWeek");
+    final totalThisWeek =
+        mealsThisWeekSnapshot1.docs.length + mealsThisWeekSnapshot2.docs.length;
 
     return {
       'totalMeals': totalMeals,
       'favorites': totalFavorites,
       'thisWeek': totalThisWeek,
+      'streak': streak,
     };
   } catch (e) {
     print('Error fetching statistics: $e');
@@ -1284,6 +1297,7 @@ Future<Map<String, dynamic>> _fetchUserStatistics() async {
       'totalMeals': 0,
       'favorites': 0,
       'thisWeek': 0,
+      'streak': 0,
     };
   }
 }

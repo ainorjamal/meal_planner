@@ -223,4 +223,21 @@ class FirestoreService {
 
     await meals.doc(mealId).delete();
   }
+
+  Future<List<DocumentSnapshot>> fetchCombinedMeals() async {
+  final userId = FirebaseAuth.instance.currentUser?.uid;
+  if (userId == null) return [];
+
+  final meals1 = await FirebaseFirestore.instance
+      .collection('meals')
+      .where('user_id', isEqualTo: userId)
+      .get();
+
+  final meals2 = await FirebaseFirestore.instance
+      .collection('meals')
+      .where('userId', isEqualTo: userId)
+      .get();
+
+  return [...meals1.docs, ...meals2.docs];
+}
 }
