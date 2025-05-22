@@ -168,7 +168,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         // Get user data from Firestore
         Map<String, dynamic>? userData =
             snapshot.data?.data() as Map<String, dynamic>?;
-        String userName = userData?['displayName'] ?? 'User';
+        String userName = currentUser.displayName ?? 'User';
         String photoUrl = userData?['photoUrl'] ?? '';
 
         return SingleChildScrollView(
@@ -546,16 +546,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
                   color: _isDarkMode ? Colors.white : AppColors.darkPurple,
-                ),
-              ),
-              TextButton.icon(
-                icon: Icon(Icons.bar_chart, size: 18),
-                label: Text('View All'),
-                onPressed: () {
-                  // Navigate to detailed statistics
-                },
-                style: TextButton.styleFrom(
-                  foregroundColor: AppColors.secondaryPurple,
                 ),
               ),
             ],
