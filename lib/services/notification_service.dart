@@ -37,7 +37,7 @@ class NotificationService {
 
     // Initialize Flutter Local Notifications
     const AndroidInitializationSettings initializationSettingsAndroid =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
+          AndroidInitializationSettings('@drawable/app_icon');
 
     final DarwinInitializationSettings initializationSettingsIOS =
         DarwinInitializationSettings(
