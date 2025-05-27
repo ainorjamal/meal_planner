@@ -56,7 +56,8 @@ class FavoritesScreen extends StatelessWidget {
   static const double imageSize = 86.0;
 
   Future<Recipe?> fetchRecipe(String recipeId) async {
-    final url = 'https://www.themealdb.com/api/json/v1/1/lookup.php?i=$recipeId';
+    final url =
+        'https://www.themealdb.com/api/json/v1/1/lookup.php?i=$recipeId';
     final response = await http.get(Uri.parse(url));
 
     if (response.statusCode == 200) {
@@ -76,7 +77,11 @@ class FavoritesScreen extends StatelessWidget {
     return null;
   }
 
-  void _showDeleteConfirmation(BuildContext context, String docId, String recipeName) {
+  void _showDeleteConfirmation(
+    BuildContext context,
+    String docId,
+    String recipeName,
+  ) {
     final brightness = Theme.of(context).brightness;
 
     showDialog(
@@ -103,8 +108,8 @@ class FavoritesScreen extends StatelessWidget {
                         color: AppColors.deleteRed.withOpacity(0.12),
                         blurRadius: 12,
                         spreadRadius: 4,
-                      )
-                    ]
+                      ),
+                    ],
                   ),
                   child: Icon(
                     Icons.delete_outline_rounded,
@@ -140,8 +145,15 @@ class FavoritesScreen extends StatelessWidget {
                       child: OutlinedButton(
                         style: OutlinedButton.styleFrom(
                           foregroundColor: AppColors.darkGrey(brightness),
-                          side: BorderSide(color: AppColors.darkGrey(brightness).withOpacity(0.3), width: 1.5),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          side: BorderSide(
+                            color: AppColors.darkGrey(
+                              brightness,
+                            ).withOpacity(0.3),
+                            width: 1.5,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
                           padding: EdgeInsets.symmetric(vertical: 14),
                         ),
                         child: Text(
@@ -160,7 +172,9 @@ class FavoritesScreen extends StatelessWidget {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.deleteRed,
                           foregroundColor: AppColors.white(brightness),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
                           padding: EdgeInsets.symmetric(vertical: 14),
                           elevation: 2,
                           shadowColor: AppColors.deleteRed.withOpacity(0.4),
@@ -192,19 +206,30 @@ class FavoritesScreen extends StatelessWidget {
     final brightness = Theme.of(context).brightness;
 
     try {
-      await FirebaseFirestore.instance.collection('favorites').doc(docId).delete();
+      await FirebaseFirestore.instance
+          .collection('favorites')
+          .doc(docId)
+          .delete();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Row(
             children: [
-              Icon(Icons.check_circle_rounded, color: AppColors.white(brightness)),
+              Icon(
+                Icons.check_circle_rounded,
+                color: AppColors.white(brightness),
+              ),
               SizedBox(width: 12),
-              Text('Removed from favorites', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+              Text(
+                'Removed from favorites',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+              ),
             ],
           ),
           backgroundColor: AppColors.darkPurple(brightness),
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           margin: EdgeInsets.all(16),
           duration: Duration(seconds: 2),
           elevation: 4,
@@ -215,14 +240,24 @@ class FavoritesScreen extends StatelessWidget {
         SnackBar(
           content: Row(
             children: [
-              Icon(Icons.error_outline_rounded, color: AppColors.white(brightness)),
+              Icon(
+                Icons.error_outline_rounded,
+                color: AppColors.white(brightness),
+              ),
               SizedBox(width: 12),
-              Expanded(child: Text('Error deleting favorite: $e', style: TextStyle(fontSize: 16))),
+              Expanded(
+                child: Text(
+                  'Error deleting favorite: $e',
+                  style: TextStyle(fontSize: 16),
+                ),
+              ),
             ],
           ),
           backgroundColor: AppColors.deleteRed,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           margin: EdgeInsets.all(16),
           duration: Duration(seconds: 3),
           elevation: 4,
@@ -252,14 +287,22 @@ class FavoritesScreen extends StatelessWidget {
         backgroundColor: AppColors.primaryPurple(brightness),
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios, color: AppColors.white(brightness), size: 22),
+          icon: Icon(
+            Icons.arrow_back_ios,
+            color: AppColors.white(brightness),
+            size: 22,
+          ),
           onPressed: () => Navigator.of(context).pop(),
         ),
         iconTheme: IconThemeData(color: AppColors.white(brightness)),
         actions: [
           Padding(
             padding: EdgeInsets.only(right: 16),
-            child: Icon(Icons.favorite_rounded, size: 22, color: AppColors.white(brightness)),
+            child: Icon(
+              Icons.favorite_rounded,
+              size: 22,
+              color: AppColors.white(brightness),
+            ),
           ),
         ],
       ),
@@ -275,368 +318,386 @@ class FavoritesScreen extends StatelessWidget {
             stops: [0.0, 0.3],
           ),
         ),
-        child: currentUser == null
-            ? _buildLoginRequired(context)
-            : _buildFavoritesList(context, currentUser),
+        child:
+            currentUser == null
+                ? _buildLoginRequired(context)
+                : _buildFavoritesList(context, currentUser),
       ),
     );
   }
 
   Widget _buildLoginRequired(BuildContext context) {
-  final brightness = Theme.of(context).brightness;
+    final brightness = Theme.of(context).brightness;
 
-  return Center(
-    child: Padding(
-      padding: const EdgeInsets.all(24.0),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            padding: EdgeInsets.all(28),
-            decoration: BoxDecoration(
-              color: AppColors.lightPurple(brightness).withOpacity(0.6),
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.primaryPurple(brightness).withOpacity(0.2),
-                  blurRadius: 16,
-                  spreadRadius: 2,
-                )
-              ],
-            ),
-            child: Icon(
-              Icons.lock_outline_rounded,
-              size: 70,
-              color: AppColors.primaryPurple(brightness),
-            ),
-          ),
-          SizedBox(height: 32),
-          Text(
-            'Login Required',
-            style: TextStyle(
-              fontSize: 26,
-              fontWeight: FontWeight.bold,
-              color: AppColors.darkPurple(brightness),
-              letterSpacing: -0.5,
-            ),
-          ),
-          SizedBox(height: 16),
-          Text(
-            'You need to be logged in to view your favorites.',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 17,
-              color: AppColors.darkGrey(brightness),
-              height: 1.4,
-            ),
-          ),
-          SizedBox(height: 40),
-          ElevatedButton.icon(
-            icon: Icon(Icons.login_rounded, size: 20),
-            label: Text(
-              'Log In',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            onPressed: () {
-              // Navigate to login screen
-              // Add your navigation logic here
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primaryPurple(brightness),
-              foregroundColor: AppColors.white(brightness),
-              padding: EdgeInsets.symmetric(horizontal: 36, vertical: 14),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-              elevation: 3,
-              shadowColor: AppColors.primaryPurple(brightness).withOpacity(0.4),
-            ),
-          ),
-        ],
-      ),
-    ),
-  );
-}
-
-Widget _buildFavoritesList(BuildContext context, User currentUser) {
-  final brightness = Theme.of(context).brightness;
-
-  return StreamBuilder<QuerySnapshot>(
-    stream: FirebaseFirestore.instance
-        .collection('favorites')
-        .where('user_id', isEqualTo: currentUser.uid)
-        .snapshots(),
-    builder: (context, snapshot) {
-      if (snapshot.connectionState == ConnectionState.waiting) {
-        return _buildLoadingState(context);
-      }
-
-      if (snapshot.hasError) {
-        return _buildErrorState(context, snapshot.error);
-      }
-
-      int totalFavorites = 0;
-      if (snapshot.hasData) {
-        totalFavorites = snapshot.data!.docs.length;
-      }
-
-      return Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
-            child: Container(
-              padding: EdgeInsets.symmetric(vertical: 20, horizontal: 24),
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: EdgeInsets.all(28),
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    AppColors.primaryPurple(brightness),
-                    AppColors.secondaryPurple(brightness),
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(20),
+                color: AppColors.lightPurple(brightness).withOpacity(0.6),
+                shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.darkPurple(brightness).withOpacity(0.3),
-                    offset: Offset(0, 8),
-                    blurRadius: 20,
-                    spreadRadius: 0,
+                    color: AppColors.primaryPurple(brightness).withOpacity(0.2),
+                    blurRadius: 16,
+                    spreadRadius: 2,
                   ),
                 ],
               ),
-              child: Row(
-                children: [
-                  Container(
-                    padding: EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: Colors.white.withOpacity(0.3),
-                        width: 2,
-                      ),
-                    ),
-                    child: Icon(
-                      Icons.favorite_rounded,
-                      color: Colors.white,
-                      size: 32,
-                    ),
-                  ),
-                  SizedBox(width: 20),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Favorite Recipes',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
-                        SizedBox(height: 6),
-                        Text(
-                          'You have $totalFavorites recipes in your favorites',
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.9),
-                            fontSize: 14,
-                            letterSpacing: 0.2,
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+              child: Icon(
+                Icons.lock_outline_rounded,
+                size: 70,
+                color: AppColors.primaryPurple(brightness),
               ),
             ),
-          ),
-
-          // Show empty or list state based on data
-          if (!snapshot.hasData || snapshot.data!.docs.isEmpty)
-            Expanded(child: _buildEmptyState(context))
-          else
-            Expanded(child: _buildFavoritesListView(context, snapshot.data!.docs, currentUser)),
-        ],
-      );
-    },
-  );
-}
-
-  Widget _buildLoadingState(BuildContext context) {
-  final brightness = Theme.of(context).brightness;
-  return Center(
-    child: Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        CircularProgressIndicator(
-          valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryPurple(brightness)),
-          strokeWidth: 3,
-        ),
-        SizedBox(height: 20),
-        Text(
-          'Loading favorites...',
-          style: TextStyle(
-            color: AppColors.darkPurple(brightness),
-            fontWeight: FontWeight.w500,
-            fontSize: 16,
-          ),
-        ),
-      ],
-    ),
-  );
-}
-
-Widget _buildErrorState(BuildContext context, Object? error) {
-  final brightness = Theme.of(context).brightness;
-  return Center(
-    child: Padding(
-      padding: const EdgeInsets.all(24.0),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            padding: EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: AppColors.deleteRed.withOpacity(0.12),
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.deleteRed.withOpacity(0.1),
-                  blurRadius: 20,
-                  spreadRadius: 4,
-                )
-              ],
-            ),
-            child: Icon(
-              Icons.error_outline_rounded,
-              size: 65,
-              color: AppColors.deleteRed,
-            ),
-          ),
-          SizedBox(height: 24),
-          Text(
-            'Error Loading Favorites',
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-              color: AppColors.darkPurple(brightness),
-              letterSpacing: -0.3,
-            ),
-          ),
-          SizedBox(height: 12),
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: 32),
-            child: Text(
-              'Error: $error',
-              textAlign: TextAlign.center,
+            SizedBox(height: 32),
+            Text(
+              'Login Required',
               style: TextStyle(
-                fontSize: 16,
-                color: AppColors.darkGrey(brightness),
-                height: 1.4,
+                fontSize: 26,
+                fontWeight: FontWeight.bold,
+                color: AppColors.darkPurple(brightness),
+                letterSpacing: -0.5,
               ),
             ),
-          ),
-        ],
-      ),
-    ),
-  );
-}
-
-Widget _buildEmptyState(BuildContext context) {
-  final brightness = Theme.of(context).brightness;
-  return Center(
-    child: Padding(
-      padding: const EdgeInsets.all(24.0),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            padding: EdgeInsets.all(28),
-            decoration: BoxDecoration(
-              color: AppColors.lightPurple(brightness).withOpacity(0.5),
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.primaryPurple(brightness).withOpacity(0.15),
-                  blurRadius: 20,
-                  spreadRadius: 2,
-                )
-              ],
-            ),
-            child: Icon(
-              Icons.favorite_border_rounded,
-              size: 70,
-              color: AppColors.primaryPurple(brightness),
-            ),
-          ),
-          SizedBox(height: 30),
-          Text(
-            'No Favorite Recipes',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: AppColors.darkPurple(brightness),
-              letterSpacing: -0.5,
-            ),
-          ),
-          SizedBox(height: 16),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32),
-            child: Text(
-              'Your favorite recipes will appear here. Start exploring and add recipes you love!',
+            SizedBox(height: 16),
+            Text(
+              'You need to be logged in to view your favorites.',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 17,
                 color: AppColors.darkGrey(brightness),
-                height: 1.5,
+                height: 1.4,
               ),
             ),
+            SizedBox(height: 40),
+            ElevatedButton.icon(
+              icon: Icon(Icons.login_rounded, size: 20),
+              label: Text(
+                'Log In',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              onPressed: () {
+                // Navigate to login screen
+                // Add your navigation logic here
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primaryPurple(brightness),
+                foregroundColor: AppColors.white(brightness),
+                padding: EdgeInsets.symmetric(horizontal: 36, vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
+                elevation: 3,
+                shadowColor: AppColors.primaryPurple(
+                  brightness,
+                ).withOpacity(0.4),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFavoritesList(BuildContext context, User currentUser) {
+    final brightness = Theme.of(context).brightness;
+
+    return StreamBuilder<QuerySnapshot>(
+      stream:
+          FirebaseFirestore.instance
+              .collection('favorites')
+              .where('user_id', isEqualTo: currentUser.uid)
+              .snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return _buildLoadingState(context);
+        }
+
+        if (snapshot.hasError) {
+          return _buildErrorState(context, snapshot.error);
+        }
+
+        int totalFavorites = 0;
+        if (snapshot.hasData) {
+          totalFavorites = snapshot.data!.docs.length;
+        }
+
+        return Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
+              child: Container(
+                padding: EdgeInsets.symmetric(vertical: 20, horizontal: 24),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      AppColors.primaryPurple(brightness),
+                      AppColors.secondaryPurple(brightness),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.darkPurple(brightness).withOpacity(0.3),
+                      offset: Offset(0, 8),
+                      blurRadius: 20,
+                      spreadRadius: 0,
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.3),
+                          width: 2,
+                        ),
+                      ),
+                      child: Icon(
+                        Icons.favorite_rounded,
+                        color: Colors.white,
+                        size: 32,
+                      ),
+                    ),
+                    SizedBox(width: 20),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Favorite Recipes',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                          SizedBox(height: 6),
+                          Text(
+                            'You have $totalFavorites recipes in your favorites',
+                            style: TextStyle(
+                              color: Colors.white.withOpacity(0.9),
+                              fontSize: 14,
+                              letterSpacing: 0.2,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            // Show empty or list state based on data
+            if (!snapshot.hasData || snapshot.data!.docs.isEmpty)
+              Expanded(child: _buildEmptyState(context))
+            else
+              Expanded(
+                child: _buildFavoritesListView(
+                  context,
+                  snapshot.data!.docs,
+                  currentUser,
+                ),
+              ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildLoadingState(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(
+              AppColors.primaryPurple(brightness),
+            ),
+            strokeWidth: 3,
           ),
-          SizedBox(height: 36),
-          ElevatedButton.icon(
-            icon: Icon(Icons.search_rounded, size: 20),
-            label: Text(
-              'Discover Recipes',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primaryPurple(brightness),
-              foregroundColor: AppColors.white(brightness),
-              padding: EdgeInsets.symmetric(horizontal: 32, vertical: 14),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-              elevation: 3,
-              shadowColor: AppColors.primaryPurple(brightness).withOpacity(0.4),
+          SizedBox(height: 20),
+          Text(
+            'Loading favorites...',
+            style: TextStyle(
+              color: AppColors.darkPurple(brightness),
+              fontWeight: FontWeight.w500,
+              fontSize: 16,
             ),
           ),
         ],
       ),
-    ),
-  );
-}
+    );
+  }
 
-Widget _buildFavoritesListView(BuildContext context, List<QueryDocumentSnapshot> favoriteDocs, User currentUser) {
-  return ListView.builder(
-    padding: EdgeInsets.fromLTRB(20, 10, 20, 20),
-    physics: BouncingScrollPhysics(),
-    itemCount: favoriteDocs.length,
-    itemBuilder: (context, index) {
-      final favorite = favoriteDocs[index];
-      final recipeId = favorite['recipe_id'];
-      final docId = favorite.id;
+  Widget _buildErrorState(BuildContext context, Object? error) {
+    final brightness = Theme.of(context).brightness;
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: AppColors.deleteRed.withOpacity(0.12),
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.deleteRed.withOpacity(0.1),
+                    blurRadius: 20,
+                    spreadRadius: 4,
+                  ),
+                ],
+              ),
+              child: Icon(
+                Icons.error_outline_rounded,
+                size: 65,
+                color: AppColors.deleteRed,
+              ),
+            ),
+            SizedBox(height: 24),
+            Text(
+              'Error Loading Favorites',
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: AppColors.darkPurple(brightness),
+                letterSpacing: -0.3,
+              ),
+            ),
+            SizedBox(height: 12),
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 32),
+              child: Text(
+                'Error: $error',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 16,
+                  color: AppColors.darkGrey(brightness),
+                  height: 1.4,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
-      return FutureBuilder<Recipe?>(
+  Widget _buildEmptyState(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: EdgeInsets.all(28),
+              decoration: BoxDecoration(
+                color: AppColors.lightPurple(brightness).withOpacity(0.5),
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primaryPurple(
+                      brightness,
+                    ).withOpacity(0.15),
+                    blurRadius: 20,
+                    spreadRadius: 2,
+                  ),
+                ],
+              ),
+              child: Icon(
+                Icons.favorite_border_rounded,
+                size: 70,
+                color: AppColors.primaryPurple(brightness),
+              ),
+            ),
+            SizedBox(height: 30),
+            Text(
+              'No Favorite Recipes',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: AppColors.darkPurple(brightness),
+                letterSpacing: -0.5,
+              ),
+            ),
+            SizedBox(height: 16),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 32),
+              child: Text(
+                'Your favorite recipes will appear here. Start exploring and add recipes you love!',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 17,
+                  color: AppColors.darkGrey(brightness),
+                  height: 1.5,
+                ),
+              ),
+            ),
+            SizedBox(height: 36),
+            ElevatedButton.icon(
+              icon: Icon(Icons.search_rounded, size: 20),
+              label: Text(
+                'Discover Recipes',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primaryPurple(brightness),
+                foregroundColor: AppColors.white(brightness),
+                padding: EdgeInsets.symmetric(horizontal: 32, vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
+                elevation: 3,
+                shadowColor: AppColors.primaryPurple(
+                  brightness,
+                ).withOpacity(0.4),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFavoritesListView(
+    BuildContext context,
+    List<QueryDocumentSnapshot> favoriteDocs,
+    User currentUser,
+  ) {
+    return ListView.builder(
+      padding: EdgeInsets.fromLTRB(20, 10, 20, 20),
+      physics: BouncingScrollPhysics(),
+      itemCount: favoriteDocs.length,
+      itemBuilder: (context, index) {
+        final favorite = favoriteDocs[index];
+        final recipeId = favorite['recipe_id'];
+        final docId = favorite.id;
+
+        return FutureBuilder<Recipe?>(
           future: fetchRecipe(recipeId),
           builder: (context, recipeSnapshot) {
             if (recipeSnapshot.connectionState == ConnectionState.waiting) {
@@ -648,274 +709,168 @@ Widget _buildFavoritesListView(BuildContext context, List<QueryDocumentSnapshot>
             }
 
             final recipe = recipeSnapshot.data!;
-            
+
             return _buildRecipeCard(context, recipe, docId, currentUser);
           },
-      );
-    },
-  );
-}
-
-  Widget _buildLoadingCard(BuildContext context) {
-  final brightness = Theme.of(context).brightness;
-
-  return Card(
-    margin: EdgeInsets.only(bottom: 16),
-    elevation: cardElevation,
-    shadowColor: AppColors.shadowColor(brightness),
-    shape: RoundedRectangleBorder(borderRadius: cardBorderRadius),
-    child: Padding(
-      padding: const EdgeInsets.all(contentPadding),
-      child: Row(
-        children: [
-          Container(
-            width: imageSize,
-            height: imageSize,
-            decoration: BoxDecoration(
-              color: AppColors.lightPurple(brightness),
-              borderRadius: BorderRadius.circular(14),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.shadowColor(brightness),
-                  blurRadius: 8,
-                  offset: Offset(0, 2),
-                )
-              ]
-            ),
-            child: Center(
-              child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryPurple(brightness)),
-                strokeWidth: 2,
-              ),
-            ),
-          ),
-          SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  height: 20,
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    color: AppColors.grey(brightness),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                SizedBox(height: 12),
-                Container(
-                  height: 16,
-                  width: 120,
-                  decoration: BoxDecoration(
-                    color: AppColors.grey(brightness),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          SizedBox(width: 12),
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: AppColors.grey(brightness),
-            ),
-          ),
-        ],
-      ),
-    ),
-  );
-}
-
-Widget _buildRecipeNotFoundCard(String recipeId, String docId, BuildContext context) {
-  final brightness = Theme.of(context).brightness;
-
-  return Card(
-    margin: EdgeInsets.only(bottom: 16),
-    elevation: cardElevation,
-    shadowColor: AppColors.shadowColor(brightness),
-    shape: RoundedRectangleBorder(borderRadius: cardBorderRadius),
-    child: Padding(
-      padding: const EdgeInsets.all(contentPadding),
-      child: Row(
-        children: [
-          Container(
-            width: imageSize,
-            height: imageSize,
-            decoration: BoxDecoration(
-              color: AppColors.grey(brightness),
-              borderRadius: BorderRadius.circular(14),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.shadowColor(brightness),
-                  blurRadius: 8,
-                  offset: Offset(0, 2),
-                )
-              ]
-            ),
-            child: Center(
-              child: Icon(Icons.image_not_supported_rounded, color: AppColors.darkGrey(brightness), size: 32),
-            ),
-          ),
-          SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Recipe not found',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 18,
-                    color: AppColors.darkPurple(brightness),
-                    letterSpacing: -0.3,
-                  ),
-                ),
-                SizedBox(height: 6),
-                Text(
-                  'ID: $recipeId',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: AppColors.darkGrey(brightness),
-                  ),
-                ),
-                SizedBox(height: 10),
-                Text(
-                  'This recipe may no longer be available',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: AppColors.darkGrey(brightness).withOpacity(0.7),
-                    fontStyle: FontStyle.italic,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Material(
-            color: Colors.transparent,
-            child: InkWell(
-              borderRadius: BorderRadius.circular(30),
-              onTap: () => _showDeleteConfirmation(context, docId, "this recipe"),
-              child: Container(
-                padding: EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: AppColors.deleteRed.withOpacity(0.1),
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.deleteRed.withOpacity(0.05),
-                      blurRadius: 10,
-                      spreadRadius: 1,
-                    )
-                  ]
-                ),
-                child: Icon(Icons.delete_outline_rounded, color: AppColors.deleteRed, size: 24),
-              ),
-            ),
-          ),
-        ],
-      ),
-    ),
-  );
-}
-
-  Widget _buildRecipeCard(BuildContext context, Recipe recipe, String docId, User currentUser) {
-  final brightness = Theme.of(context).brightness;
-
-  return Card(
-    margin: EdgeInsets.only(bottom: 16),
-    elevation: cardElevation,
-    shadowColor: AppColors.shadowColor(brightness),
-    shape: RoundedRectangleBorder(borderRadius: cardBorderRadius),
-    child: InkWell(
-      borderRadius: cardBorderRadius,
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => RecipeDetailScreen(recipe: recipe, userId: currentUser.uid),
-          ),
         );
       },
+    );
+  }
+
+  Widget _buildLoadingCard(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+
+    return Card(
+      margin: EdgeInsets.only(bottom: 16),
+      elevation: cardElevation,
+      shadowColor: AppColors.shadowColor(brightness),
+      shape: RoundedRectangleBorder(borderRadius: cardBorderRadius),
       child: Padding(
         padding: const EdgeInsets.all(contentPadding),
         child: Row(
           children: [
-            Hero(
-              tag: 'recipe-image-${recipe.id}',
-              child: Container(
-                width: imageSize,
-                height: imageSize,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(14),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.shadowColor(brightness),
-                      blurRadius: 8,
-                      offset: Offset(0, 2),
-                    )
-                  ],
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(14),
-                  child: Image.network(
-                    recipe.imageUrl,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        color: AppColors.grey(brightness),
-                        child: Icon(Icons.broken_image_rounded, color: AppColors.darkGrey(brightness), size: 32),
-                      );
-                    },
+            Container(
+              width: imageSize,
+              height: imageSize,
+              decoration: BoxDecoration(
+                color: AppColors.lightPurple(brightness),
+                borderRadius: BorderRadius.circular(14),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.shadowColor(brightness),
+                    blurRadius: 8,
+                    offset: Offset(0, 2),
                   ),
+                ],
+              ),
+              child: Center(
+                child: CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    AppColors.primaryPurple(brightness),
+                  ),
+                  strokeWidth: 2,
                 ),
               ),
             ),
-            SizedBox(width: 18),
+            SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    recipe.name,
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.darkPurple(brightness),
-                      letterSpacing: -0.3,
-                      height: 1.2,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  SizedBox(height: 10),
                   Container(
-                    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    height: 20,
+                    width: double.infinity,
                     decoration: BoxDecoration(
-                      color: AppColors.lightPurple(brightness),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: AppColors.secondaryPurple(brightness).withOpacity(0.3)),
+                      color: AppColors.grey(brightness),
+                      borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Text(
-                      recipe.category,
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.darkPurple(brightness),
-                      ),
+                  ),
+                  SizedBox(height: 12),
+                  Container(
+                    height: 16,
+                    width: 120,
+                    decoration: BoxDecoration(
+                      color: AppColors.grey(brightness),
+                      borderRadius: BorderRadius.circular(8),
                     ),
                   ),
                 ],
               ),
             ),
-            SizedBox(width: 8),
+            SizedBox(width: 12),
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.grey(brightness),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRecipeNotFoundCard(
+    String recipeId,
+    String docId,
+    BuildContext context,
+  ) {
+    final brightness = Theme.of(context).brightness;
+
+    return Card(
+      margin: EdgeInsets.only(bottom: 16),
+      elevation: cardElevation,
+      shadowColor: AppColors.shadowColor(brightness),
+      shape: RoundedRectangleBorder(borderRadius: cardBorderRadius),
+      child: Padding(
+        padding: const EdgeInsets.all(contentPadding),
+        child: Row(
+          children: [
+            Container(
+              width: imageSize,
+              height: imageSize,
+              decoration: BoxDecoration(
+                color: AppColors.grey(brightness),
+                borderRadius: BorderRadius.circular(14),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.shadowColor(brightness),
+                    blurRadius: 8,
+                    offset: Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Center(
+                child: Icon(
+                  Icons.image_not_supported_rounded,
+                  color: AppColors.darkGrey(brightness),
+                  size: 32,
+                ),
+              ),
+            ),
+            SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Recipe not found',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                      color: AppColors.darkPurple(brightness),
+                      letterSpacing: -0.3,
+                    ),
+                  ),
+                  SizedBox(height: 6),
+                  Text(
+                    'ID: $recipeId',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: AppColors.darkGrey(brightness),
+                    ),
+                  ),
+                  SizedBox(height: 10),
+                  Text(
+                    'This recipe may no longer be available',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: AppColors.darkGrey(brightness).withOpacity(0.7),
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                ],
+              ),
+            ),
             Material(
               color: Colors.transparent,
               child: InkWell(
                 borderRadius: BorderRadius.circular(30),
-                onTap: () => _showDeleteConfirmation(context, docId, recipe.name),
+                onTap:
+                    () =>
+                        _showDeleteConfirmation(context, docId, "this recipe"),
                 child: Container(
                   padding: EdgeInsets.all(10),
                   decoration: BoxDecoration(
@@ -924,19 +879,167 @@ Widget _buildRecipeNotFoundCard(String recipeId, String docId, BuildContext cont
                     boxShadow: [
                       BoxShadow(
                         color: AppColors.deleteRed.withOpacity(0.05),
-                        blurRadius: 8,
+                        blurRadius: 10,
                         spreadRadius: 1,
-                      )
+                      ),
                     ],
                   ),
-                  child: Icon(Icons.delete_outline_rounded, color: AppColors.deleteRed, size: 24),
+                  child: Icon(
+                    Icons.delete_outline_rounded,
+                    color: AppColors.deleteRed,
+                    size: 24,
+                  ),
                 ),
               ),
             ),
           ],
         ),
       ),
-    ),
-  );
-}
+    );
+  }
+
+  Widget _buildRecipeCard(
+    BuildContext context,
+    Recipe recipe,
+    String docId,
+    User currentUser,
+  ) {
+    final brightness = Theme.of(context).brightness;
+
+    return Card(
+      margin: EdgeInsets.only(bottom: 16),
+      elevation: cardElevation,
+      shadowColor: AppColors.shadowColor(brightness),
+      shape: RoundedRectangleBorder(borderRadius: cardBorderRadius),
+      child: InkWell(
+        borderRadius: cardBorderRadius,
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder:
+                  (_) => RecipeDetailScreen(
+                    recipe: recipe,
+                    userId: currentUser.uid,
+                  ),
+            ),
+          );
+        },
+        child: Padding(
+          padding: const EdgeInsets.all(contentPadding),
+          child: Row(
+            children: [
+              Hero(
+                tag: 'recipe-image-${recipe.id}',
+                child: Container(
+                  width: imageSize,
+                  height: imageSize,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(14),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.shadowColor(brightness),
+                        blurRadius: 8,
+                        offset: Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(14),
+                    child: Image.network(
+                      recipe.imageUrl,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          color: AppColors.grey(brightness),
+                          child: Icon(
+                            Icons.broken_image_rounded,
+                            color: AppColors.darkGrey(brightness),
+                            size: 32,
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(width: 18),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      recipe.name,
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.darkPurple(brightness),
+                        letterSpacing: -0.3,
+                        height: 1.2,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    SizedBox(height: 10),
+                    Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.lightPurple(brightness),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: AppColors.secondaryPurple(
+                            brightness,
+                          ).withOpacity(0.3),
+                        ),
+                      ),
+                      child: Text(
+                        recipe.category,
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.darkPurple(brightness),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(width: 8),
+              Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(30),
+                  onTap:
+                      () =>
+                          _showDeleteConfirmation(context, docId, recipe.name),
+                  child: Container(
+                    padding: EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: AppColors.deleteRed.withOpacity(0.1),
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.deleteRed.withOpacity(0.05),
+                          blurRadius: 8,
+                          spreadRadius: 1,
+                        ),
+                      ],
+                    ),
+                    child: Icon(
+                      Icons.delete_outline_rounded,
+                      color: AppColors.deleteRed,
+                      size: 24,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }

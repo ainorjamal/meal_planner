@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/recipe.dart';
 
-
 // Custom color palette - same as in CalendarScreen
 class AppColors {
   static const Color primaryPurple = Color(0xFF6750A4);
@@ -13,7 +12,7 @@ class AppColors {
   static const Color lightPurple = Color(0xFFE6DFFF);
   static const Color darkPurple = Color(0xFF4A3880);
   static const Color accentColor = Color(0xFFB69DF8);
-  
+
   // Meal type colors
   static const Color breakfastColor = Color(0xFFFFA726);
   static const Color lunchColor = Color(0xFF66BB6A);
@@ -40,74 +39,87 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
   TimeOfDay? selectedTime;
   String selectedMealType = 'Lunch'; // Default value
   final List<String> mealTypes = ['Breakfast', 'Lunch', 'Dinner', 'Snack'];
+  final TextEditingController timeController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    selectedTime = TimeOfDay.now();
+    _updateTimeController();
+  }
+
+  // Function to update time controller with AM/PM format
+  void _updateTimeController() {
+    if (selectedTime != null) {
+      final String period = selectedTime!.period == DayPeriod.am ? 'AM' : 'PM';
+      final int hourIn12HourFormat =
+          selectedTime!.hourOfPeriod == 0 ? 12 : selectedTime!.hourOfPeriod;
+      final String minute = selectedTime!.minute.toString().padLeft(2, '0');
+      timeController.text = '$hourIn12HourFormat:$minute $period';
+    }
+  }
 
   // Function to show success notification
   void _showSuccessNotification(BuildContext context) {
     // Create an overlay entry
     OverlayState? overlayState = Overlay.of(context);
     late OverlayEntry overlayEntry;
-    
+
     overlayEntry = OverlayEntry(
-      builder: (context) => Positioned(
-        top: MediaQuery.of(context).viewPadding.top + 20,
-        left: 20,
-        right: 20,
-        child: Material(
-          elevation: 8,
-          borderRadius: BorderRadius.circular(12),
-          color: Colors.green,
-          child: Container(
-            padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-            decoration: BoxDecoration(
+      builder:
+          (context) => Positioned(
+            top: MediaQuery.of(context).viewPadding.top + 20,
+            left: 20,
+            right: 20,
+            child: Material(
+              elevation: 8,
               borderRadius: BorderRadius.circular(12),
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.check_circle,
-                  color: Colors.white,
-                  size: 28,
+              color: Colors.green,
+              child: Container(
+                padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Success!',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
+                child: Row(
+                  children: [
+                    Icon(Icons.check_circle, color: Colors.white, size: 28),
+                    SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Success!',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                          SizedBox(height: 4),
+                          Text(
+                            'Added to Meal Plan',
+                            style: TextStyle(color: Colors.white, fontSize: 14),
+                          ),
+                        ],
                       ),
-                      SizedBox(height: 4),
-                      Text(
-                        'Added to Meal Plan',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.close, color: Colors.white),
+                      onPressed: () {
+                        overlayEntry.remove();
+                      },
+                    ),
+                  ],
                 ),
-                IconButton(
-                  icon: Icon(Icons.close, color: Colors.white),
-                  onPressed: () {
-                    overlayEntry.remove();
-                  },
-                ),
-              ],
+              ),
             ),
           ),
-        ),
-      ),
     );
-    
+
     // Insert the overlay
     overlayState.insert(overlayEntry);
-    
+
     // Automatically remove after 3 seconds
     Future.delayed(Duration(seconds: 3), () {
       if (overlayEntry.mounted) {
@@ -119,12 +131,13 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
   // Function to add the recipe to Firestore favorites
   void _addToFavorites(BuildContext context) async {
     final favRef = FirebaseFirestore.instance.collection('favorites');
-    
+
     // Check if the recipe is already in favorites
-    final snapshot = await favRef
-        .where('user_id', isEqualTo: widget.userId)
-        .where('recipe_id', isEqualTo: widget.recipe.id)
-        .get();
+    final snapshot =
+        await favRef
+            .where('user_id', isEqualTo: widget.userId)
+            .where('recipe_id', isEqualTo: widget.recipe.id)
+            .get();
 
     if (snapshot.docs.isNotEmpty) {
       // 🟡 Already in favorites
@@ -133,80 +146,84 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
           content: Text('${widget.recipe.name} is already in Favorites'),
           backgroundColor: Colors.orange,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
         ),
       );
     } else {
       // 🟢 Add to favorites
-      favRef.add({
-        'user_id': widget.userId,
-        'recipe_id': widget.recipe.id,
-        'recipe_name': widget.recipe.name,
-        'image_url': widget.recipe.imageUrl,
-        'timestamp': FieldValue.serverTimestamp(),
-      }).then((_) {
-        // Clearer success feedback
-        final snackBar = SnackBar(
-          content: Row(
-            children: [
-              Icon(Icons.check_circle, color: Colors.white),
-              SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
-                    Text(
-                      'Success!',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
+      favRef
+          .add({
+            'user_id': widget.userId,
+            'recipe_id': widget.recipe.id,
+            'recipe_name': widget.recipe.name,
+            'image_url': widget.recipe.imageUrl,
+            'timestamp': FieldValue.serverTimestamp(),
+          })
+          .then((_) {
+            // Clearer success feedback
+            final snackBar = SnackBar(
+              content: Row(
+                children: [
+                  Icon(Icons.check_circle, color: Colors.white),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: const [
+                        Text(
+                          'Success!',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        Text(
+                          'Added to Favorites',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ],
                     ),
-                    Text(
-                      'Added to Favorites',
-                      style: TextStyle(
-                        color: Colors.white,
-                      ),
-                    ),
-                  ],
+                  ),
+                ],
+              ),
+              backgroundColor: const Color.fromARGB(255, 51, 38, 88),
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              duration: Duration(seconds: 3),
+            );
+
+            ScaffoldMessenger.of(context).showSnackBar(snackBar);
+          })
+          .catchError((error) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Failed to add to Favorites'),
+                backgroundColor: Colors.red,
+                behavior: SnackBarBehavior.floating,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
                 ),
               ),
-            ],
-          ),
-          backgroundColor: const Color.fromARGB(255, 51, 38, 88),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-          duration: Duration(seconds: 3),
-        );
-
-        ScaffoldMessenger.of(context).showSnackBar(snackBar);
-      }).catchError((error) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to add to Favorites'),
-            backgroundColor: Colors.red,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
-        );
-      });
+            );
+          });
     }
   }
 
   // Function to show the dialog for adding the meal schedule
   void _showAddToMealDialog(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    
+
     // Reset selections
     setState(() {
       selectedDate = DateTime.now();
       selectedTime = TimeOfDay.now();
       selectedMealType = 'Lunch';
+      _updateTimeController();
     });
 
     // Function to pick date
@@ -241,23 +258,41 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
         });
     }
 
-    // Function to pick time
+    // Function to pick time with enhanced styling
     Future<void> _selectTime(BuildContext context) async {
       final TimeOfDay? picked = await showTimePicker(
         context: context,
         initialTime: selectedTime ?? TimeOfDay.now(),
-        builder: (context, child) {
+        builder: (BuildContext context, Widget? child) {
           return Theme(
             data: Theme.of(context).copyWith(
-              colorScheme: ColorScheme.light(
-                primary: AppColors.primaryPurple,
-                onPrimary: Colors.white,
-                onSurface: AppColors.darkPurple,
+              // Custom TimePickerTheme with high contrast colors
+              timePickerTheme: TimePickerThemeData(
+                backgroundColor: Colors.white,
+                hourMinuteColor: AppColors.primaryPurple.withOpacity(0.2),
+                hourMinuteTextColor: AppColors.darkPurple,
+                dayPeriodColor: AppColors.lightPurple,
+                dayPeriodTextColor: AppColors.darkPurple,
+                dialHandColor: AppColors.primaryPurple,
+                dialBackgroundColor: AppColors.lightPurple.withOpacity(0.3),
+                dialTextColor: Colors.black87,
+                entryModeIconColor: AppColors.primaryPurple,
+                hourMinuteTextStyle: TextStyle(
+                  fontSize: 45,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
               ),
               textButtonTheme: TextButtonThemeData(
                 style: TextButton.styleFrom(
                   foregroundColor: AppColors.primaryPurple,
                 ),
+              ),
+              colorScheme: ColorScheme.light(
+                primary: AppColors.primaryPurple,
+                onPrimary: Colors.white,
+                surface: Colors.white,
+                onSurface: AppColors.darkPurple,
               ),
             ),
             child: child!,
@@ -265,270 +300,298 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
         },
       );
 
-      if (picked != null)
+      if (picked != null && picked != selectedTime) {
         setState(() {
           selectedTime = picked;
+          _updateTimeController();
         });
+      }
     }
 
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(
-            'Add to Meal Schedule',
-            style: TextStyle(
-              color: AppColors.darkPurple,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          content: Container(
-            width: double.maxFinite,
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Recipe preview
-                  Center(
-                    child: Column(
-                      children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: Image.network(
-                            widget.recipe.imageUrl,
-                            height: 120,
-                            width: 160,
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                        SizedBox(height: 8),
-                        Text(
-                          widget.recipe.name,
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                            color: AppColors.darkPurple,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
-                    ),
-                  ),
-                  SizedBox(height: 24),
-                  
-                  // Meal Type Selector
-                  Text(
-                    'Meal Type:',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      color: isDarkMode ? Colors.white : AppColors.darkPurple,
-                    ),
-                  ),
-                  SizedBox(height: 8),
-                  Container(
-                    padding: EdgeInsets.symmetric(horizontal: 12),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: AppColors.secondaryPurple.withOpacity(0.5),
-                      ),
-                      color: isDarkMode ? Colors.grey[800] : Colors.white,
-                    ),
-                    child: DropdownButtonHideUnderline(
-                      child: DropdownButton<String>(
-                        value: selectedMealType,
-                        isExpanded: true,
-                        icon: Icon(
-                          Icons.arrow_drop_down,
-                          color: AppColors.primaryPurple,
-                        ),
-                        items: mealTypes.map((String mealType) {
-                          return DropdownMenuItem<String>(
-                            value: mealType,
-                            child: Text(mealType),
-                          );
-                        }).toList(),
-                        onChanged: (String? newValue) {
-                          if (newValue != null) {
-                            setState(() {
-                              selectedMealType = newValue;
-                            });
-                            Navigator.pop(context);
-                            _showAddToMealDialog(context);
-                          }
-                        },
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 20),
-                  
-                  // Date picker
-                  Text(
-                    'Date:',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      color: isDarkMode ? Colors.white : AppColors.darkPurple,
-                    ),
-                  ),
-                  SizedBox(height: 8),
-                  GestureDetector(
-                    onTap: () => _selectDate(context),
-                    child: Container(
-                      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: AppColors.secondaryPurple.withOpacity(0.5),
-                        ),
-                        color: isDarkMode ? Colors.grey[800] : Colors.white,
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            selectedDate == null
-                                ? 'Select Date'
-                                : '${selectedDate!.day}/${selectedDate!.month}/${selectedDate!.year}',
-                            style: TextStyle(
-                              color: isDarkMode ? Colors.white : Colors.black87,
-                            ),
-                          ),
-                          Icon(
-                            Icons.calendar_today,
-                            color: AppColors.primaryPurple,
-                            size: 18,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 20),
-                  
-                  // Time picker
-                  Text(
-                    'Time:',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      color: isDarkMode ? Colors.white : AppColors.darkPurple,
-                    ),
-                  ),
-                  SizedBox(height: 8),
-                  GestureDetector(
-                    onTap: () => _selectTime(context),
-                    child: Container(
-                      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: AppColors.secondaryPurple.withOpacity(0.5),
-                        ),
-                        color: isDarkMode ? Colors.grey[800] : Colors.white,
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            selectedTime == null
-                                ? 'Select Time'
-                                : selectedTime!.format(context),
-                            style: TextStyle(
-                              color: isDarkMode ? Colors.white : Colors.black87,
-                            ),
-                          ),
-                          Icon(
-                            Icons.access_time,
-                            color: AppColors.primaryPurple,
-                            size: 18,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: Text(
-                'Cancel',
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: Text(
+                'Add to Meal Schedule',
                 style: TextStyle(
-                  color: Colors.grey[600],
+                  color: AppColors.darkPurple,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                if (selectedDate != null && selectedTime != null) {
-                  // Combine the selected date and time into a single DateTime object
-                  DateTime scheduleDateTime = DateTime(
-                    selectedDate!.year,
-                    selectedDate!.month,
-                    selectedDate!.day,
-                    selectedTime!.hour,
-                    selectedTime!.minute,
-                  );
-
-                  // Add to meals collection in Firestore
-                  FirebaseFirestore.instance.collection('meals').add({
-                    'user_id': widget.userId,
-                    'recipe_id': widget.recipe.id,
-                    'recipe_name': widget.recipe.name,
-                    'date': Timestamp.fromDate(scheduleDateTime),
-                    'time': '${selectedTime!.format(context)}',
-                    'mealType': selectedMealType,
-                    'title': widget.recipe.name,
-                    'image_url': widget.recipe.imageUrl,
-                    'created_at': FieldValue.serverTimestamp(),
-                  }).then((_) {
-                    // Close the dialog first
-                    Navigator.pop(context);
-                    
-                    // Show a more prominent notification at the top
-                    _showSuccessNotification(context);
-                  }).catchError((error) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Failed to add to Meal Plan'),
-                        backgroundColor: Colors.red,
-                        behavior: SnackBarBehavior.floating,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              content: Container(
+                width: double.maxFinite,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Recipe preview
+                      Center(
+                        child: Column(
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: Image.network(
+                                widget.recipe.imageUrl,
+                                height: 120,
+                                width: 160,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                            SizedBox(height: 8),
+                            Text(
+                              widget.recipe.name,
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                                color: AppColors.darkPurple,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
                         ),
                       ),
-                    );
-                  });
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Please select both date and time'),
-                      backgroundColor: Colors.orange,
-                      behavior: SnackBarBehavior.floating,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
+                      SizedBox(height: 24),
+
+                      // Meal Type Selector
+                      Text(
+                        'Meal Type:',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          color:
+                              isDarkMode ? Colors.white : AppColors.darkPurple,
+                        ),
                       ),
-                    ),
-                  );
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primaryPurple,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
+                      SizedBox(height: 8),
+                      Container(
+                        padding: EdgeInsets.symmetric(horizontal: 12),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: AppColors.secondaryPurple.withOpacity(0.5),
+                          ),
+                          color: isDarkMode ? Colors.grey[800] : Colors.white,
+                        ),
+                        child: DropdownButtonHideUnderline(
+                          child: DropdownButton<String>(
+                            value: selectedMealType,
+                            isExpanded: true,
+                            icon: Icon(
+                              Icons.arrow_drop_down,
+                              color: AppColors.primaryPurple,
+                            ),
+                            items:
+                                mealTypes.map((String mealType) {
+                                  return DropdownMenuItem<String>(
+                                    value: mealType,
+                                    child: Text(mealType),
+                                  );
+                                }).toList(),
+                            onChanged: (String? newValue) {
+                              if (newValue != null) {
+                                setDialogState(() {
+                                  selectedMealType = newValue;
+                                });
+                              }
+                            },
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 20),
+
+                      // Date picker
+                      Text(
+                        'Date:',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          color:
+                              isDarkMode ? Colors.white : AppColors.darkPurple,
+                        ),
+                      ),
+                      SizedBox(height: 8),
+                      GestureDetector(
+                        onTap: () async {
+                          await _selectDate(context);
+                          setDialogState(() {});
+                        },
+                        child: Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: AppColors.secondaryPurple.withOpacity(0.5),
+                            ),
+                            color: isDarkMode ? Colors.grey[800] : Colors.white,
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                selectedDate == null
+                                    ? 'Select Date'
+                                    : '${selectedDate!.day}/${selectedDate!.month}/${selectedDate!.year}',
+                                style: TextStyle(
+                                  color:
+                                      isDarkMode
+                                          ? Colors.white
+                                          : Colors.black87,
+                                ),
+                              ),
+                              Icon(
+                                Icons.calendar_today,
+                                color: AppColors.primaryPurple,
+                                size: 18,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 20),
+
+                      // Time picker with AM/PM display
+                      Text(
+                        'Time:',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          color:
+                              isDarkMode ? Colors.white : AppColors.darkPurple,
+                        ),
+                      ),
+                      SizedBox(height: 8),
+                      GestureDetector(
+                        onTap: () async {
+                          await _selectTime(context);
+                          setDialogState(() {});
+                        },
+                        child: Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: AppColors.secondaryPurple.withOpacity(0.5),
+                            ),
+                            color: isDarkMode ? Colors.grey[800] : Colors.white,
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                timeController.text.isEmpty
+                                    ? 'Select Time'
+                                    : timeController.text,
+                                style: TextStyle(
+                                  color:
+                                      isDarkMode
+                                          ? Colors.white
+                                          : Colors.black87,
+                                ),
+                              ),
+                              Icon(
+                                Icons.access_time,
+                                color: AppColors.primaryPurple,
+                                size: 18,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               ),
-              child: Text('Add to Plan'),
-            ),
-          ],
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: Text(
+                    'Cancel',
+                    style: TextStyle(color: Colors.grey[600]),
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    if (selectedDate != null && selectedTime != null) {
+                      // Combine the selected date and time into a single DateTime object
+                      DateTime scheduleDateTime = DateTime(
+                        selectedDate!.year,
+                        selectedDate!.month,
+                        selectedDate!.day,
+                        selectedTime!.hour,
+                        selectedTime!.minute,
+                      );
+
+                      // Add to meals collection in Firestore
+                      FirebaseFirestore.instance
+                          .collection('meals')
+                          .add({
+                            'userId': widget.userId,
+                            'recipe_id': widget.recipe.id,
+                            'recipe_name': widget.recipe.name,
+                            'date': Timestamp.fromDate(scheduleDateTime),
+                            'time': timeController.text, // Now includes AM/PM
+                            'mealType': selectedMealType,
+                            'title': widget.recipe.name,
+                            'image_url': widget.recipe.imageUrl,
+                            'createdAt': FieldValue.serverTimestamp(),
+                          })
+                          .then((_) {
+                            // Close the dialog first
+                            Navigator.pop(context);
+
+                            // Show a more prominent notification at the top
+                            _showSuccessNotification(context);
+                          })
+                          .catchError((error) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Failed to add to Meal Plan'),
+                                backgroundColor: Colors.red,
+                                behavior: SnackBarBehavior.floating,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                            );
+                          });
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Please select both date and time'),
+                          backgroundColor: Colors.orange,
+                          behavior: SnackBarBehavior.floating,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                      );
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primaryPurple,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  ),
+                  child: Text('Add to Plan'),
+                ),
+              ],
+            );
+          },
         );
       },
     );
@@ -537,7 +600,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -601,7 +664,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                 ),
               ),
               SizedBox(height: 24),
-              
+
               // Recipe details card
               Card(
                 elevation: 4,
@@ -617,7 +680,10 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                       Row(
                         children: [
                           Container(
-                            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
                             decoration: BoxDecoration(
                               color: AppColors.lightPurple,
                               borderRadius: BorderRadius.circular(20),
@@ -645,14 +711,15 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                         ],
                       ),
                       SizedBox(height: 16),
-                      
+
                       // Recipe ingredients section
                       Text(
                         'Ingredients',
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: isDarkMode ? Colors.white : AppColors.darkPurple,
+                          color:
+                              isDarkMode ? Colors.white : AppColors.darkPurple,
                         ),
                       ),
                       SizedBox(height: 8),
@@ -669,28 +736,29 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                         ],
                       ),
                       SizedBox(height: 24),
-                      
+
                       // Recipe instructions section
                       Text(
                         'Instructions',
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: isDarkMode ? Colors.white : AppColors.darkPurple,
+                          color:
+                              isDarkMode ? Colors.white : AppColors.darkPurple,
                         ),
                       ),
                       SizedBox(height: 8),
                       Text(
                         widget.recipe.instructions
-                          .trim()
-                          .split('\n')
-                          .map((paragraph) => '\t$paragraph')
-                          .join('\n\n'), // adds space between paragraphs
+                            .trim()
+                            .split('\n')
+                            .map((paragraph) => '\t$paragraph')
+                            .join('\n\n'), // adds space between paragraphs
                         textAlign: TextAlign.justify,
                         style: TextStyle(
                           fontSize: 16,
                           height: 1.5,
-                          fontFamily: 'Poppins', 
+                          fontFamily: 'Poppins',
                           fontWeight: FontWeight.normal,
                           fontStyle: FontStyle.normal,
                           color: isDarkMode ? Colors.grey[300] : Colors.black87,
@@ -701,7 +769,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                 ),
               ),
               SizedBox(height: 24),
-              
+
               // Action buttons
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -730,7 +798,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
       ),
     );
   }
-  
+
   // Helper method to build ingredient item
   Widget _buildIngredientItem(String ingredient) {
     return Padding(
@@ -743,10 +811,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
             color: AppColors.secondaryPurple,
           ),
           SizedBox(width: 8),
-          Text(
-            ingredient,
-            style: TextStyle(fontSize: 16),
-          ),
+          Text(ingredient, style: TextStyle(fontSize: 16)),
         ],
       ),
     );

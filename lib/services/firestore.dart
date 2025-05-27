@@ -2,10 +2,14 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'notification_service.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 class FirestoreService {
   final CollectionReference meals = FirebaseFirestore.instance.collection(
     'meals',
+  );
+  final CollectionReference mealHistory = FirebaseFirestore.instance.collection(
+    'meal_history',
   );
   final String? userId = FirebaseAuth.instance.currentUser?.uid;
   final NotificationService _notificationService = NotificationService();
@@ -15,7 +19,7 @@ class FirestoreService {
     if (userId == null) throw Exception('User not authenticated');
     return meals
         .where('userId', isEqualTo: userId)
-        .orderBy('created_at', descending: true)
+        .orderBy('createdAt', descending: true)
         .snapshots();
   }
 
@@ -71,6 +75,148 @@ class FirestoreService {
   Future<DocumentSnapshot> getMeal(String mealId) {
     if (userId == null) throw Exception('User not authenticated');
     return meals.doc(mealId).get();
+  }
+
+  // Move meal to history (for past meals or user-initiated moves)
+  Future<void> moveMealToHistory(
+    String mealId, {
+    String reason = 'manual',
+  }) async {
+    if (userId == null) throw Exception('User not authenticated');
+
+    try {
+      final mealDoc = await meals.doc(mealId).get();
+      if (!mealDoc.exists) {
+        debugPrint('Meal $mealId does not exist');
+        return;
+      }
+
+      final mealData = mealDoc.data() as Map<String, dynamic>;
+
+      // Add metadata for when meal is moved to history and why
+      final updatedMealData = {
+        ...mealData,
+        'movedAt': Timestamp.now(),
+        'moveReason': reason, // 'auto', 'manual', 'expired', etc.
+      };
+
+      // Save to meal_history collection with the same document ID
+      await mealHistory.doc(mealId).set(updatedMealData);
+
+      // Delete from original meals collection
+      await meals.doc(mealId).delete();
+
+      // Cancel notifications
+      await _notificationService.cancelNotification(
+        _notificationService.createUniqueId(mealId),
+      );
+
+      debugPrint('Moved meal $mealId to history (reason: $reason)');
+    } catch (e) {
+      debugPrint('Error moving meal $mealId to history: $e');
+      rethrow;
+    }
+  }
+
+  // Permanently delete meal (use sparingly - mainly for cleanup)
+  Future<void> permanentlyDeleteMeal(String mealId) async {
+    if (userId == null) throw Exception('User not authenticated');
+
+    try {
+      // Cancel notification before deleting the meal
+      await _notificationService.cancelNotification(
+        _notificationService.createUniqueId(mealId),
+      );
+
+      // Delete from meals collection
+      await meals.doc(mealId).delete();
+
+      // Also delete from history if it exists there
+      await mealHistory.doc(mealId).delete();
+
+      debugPrint('Permanently deleted meal $mealId');
+    } catch (e) {
+      debugPrint('Error permanently deleting meal $mealId: $e');
+      rethrow;
+    }
+  }
+
+  // DELETE - Now moves to history instead of permanent deletion
+  Future<void> deleteMeal(String mealId) async {
+    // By default, "deleting" a meal moves it to history
+    await moveMealToHistory(mealId, reason: 'user_deleted');
+  }
+
+  // Restore meal from history back to active meals
+  Future<void> restoreMealFromHistory(String mealId) async {
+    if (userId == null) throw Exception('User not authenticated');
+
+    try {
+      final historyDoc = await mealHistory.doc(mealId).get();
+      if (!historyDoc.exists) {
+        debugPrint('Meal $mealId does not exist in history');
+        return;
+      }
+
+      final mealData = historyDoc.data() as Map<String, dynamic>;
+
+      // Remove history metadata
+      mealData.remove('movedAt');
+      mealData.remove('moveReason');
+
+      // Update the date to future if it's in the past
+      if (mealData['date'] != null && mealData['date'] is Timestamp) {
+        final mealDate = (mealData['date'] as Timestamp).toDate();
+        final now = DateTime.now();
+        if (mealDate.isBefore(now)) {
+          // Move the meal to tomorrow at the same time
+          final tomorrow = DateTime(now.year, now.month, now.day + 1);
+          mealData['date'] = Timestamp.fromDate(
+            DateTime(
+              tomorrow.year,
+              tomorrow.month,
+              tomorrow.day,
+              mealDate.hour,
+              mealDate.minute,
+            ),
+          );
+        }
+      }
+
+      // Add back to meals collection
+      await meals.doc(mealId).set(mealData);
+
+      // Remove from history
+      await mealHistory.doc(mealId).delete();
+
+      // Reschedule notification if the meal is in the future
+      if (mealData['mealType'] != null &&
+          mealData['title'] != null &&
+          mealData['time'] != null &&
+          mealData['date'] != null) {
+        await _scheduleNotificationForMeal(
+          mealId: mealId,
+          title: mealData['title'],
+          time: mealData['time'],
+          date: (mealData['date'] as Timestamp).toDate(),
+          mealType: mealData['mealType'],
+        );
+      }
+
+      debugPrint('Restored meal $mealId from history');
+    } catch (e) {
+      debugPrint('Error restoring meal $mealId from history: $e');
+      rethrow;
+    }
+  }
+
+  // Get meal history for the user
+  Stream<QuerySnapshot> getMealHistory() {
+    if (userId == null) throw Exception('User not authenticated');
+    return mealHistory
+        .where('userId', isEqualTo: userId)
+        .orderBy('movedAt', descending: true)
+        .snapshots();
   }
 
   // CREATE with automatic notification scheduling
@@ -212,32 +358,47 @@ class FirestoreService {
     }
   }
 
-  // DELETE
-  Future<void> deleteMeal(String mealId) async {
-    if (userId == null) throw Exception('User not authenticated');
+  Future<List<DocumentSnapshot>> fetchCombinedMeals() async {
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+    if (userId == null) return [];
 
-    // Cancel notification before deleting the meal
-    await _notificationService.cancelNotification(
-      _notificationService.createUniqueId(mealId),
-    );
+    final mealsSnapshot =
+        await FirebaseFirestore.instance
+            .collection('meals')
+            .where('userId', isEqualTo: userId)
+            .get();
 
-    await meals.doc(mealId).delete();
+    return mealsSnapshot.docs;
   }
 
-  Future<List<DocumentSnapshot>> fetchCombinedMeals() async {
-  final userId = FirebaseAuth.instance.currentUser?.uid;
-  if (userId == null) return [];
+  // Auto-move past meals to history (called periodically)
+  Future<void> autoMovePastMealsToHistory() async {
+    if (userId == null) throw Exception('User not authenticated');
 
-  final meals1 = await FirebaseFirestore.instance
-      .collection('meals')
-      .where('user_id', isEqualTo: userId)
-      .get();
+    try {
+      final now = DateTime.now();
+      final QuerySnapshot pastMealsSnapshot =
+          await meals
+              .where('userId', isEqualTo: userId)
+              .where(
+                'date',
+                isLessThan: Timestamp.fromDate(
+                  DateTime(now.year, now.month, now.day),
+                ),
+              )
+              .get();
 
-  final meals2 = await FirebaseFirestore.instance
-      .collection('meals')
-      .where('userId', isEqualTo: userId)
-      .get();
+      for (var doc in pastMealsSnapshot.docs) {
+        await moveMealToHistory(doc.id, reason: 'auto_expired');
+      }
 
-  return [...meals1.docs, ...meals2.docs];
-}
+      if (pastMealsSnapshot.docs.isNotEmpty) {
+        debugPrint(
+          'Auto-moved ${pastMealsSnapshot.docs.length} past meals to history',
+        );
+      }
+    } catch (e) {
+      debugPrint('Error auto-moving past meals to history: $e');
+    }
+  }
 }
