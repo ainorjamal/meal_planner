@@ -13,12 +13,15 @@ import 'pages/mealHistory_screen.dart';
 import 'pages/helpAndSupport_screen.dart';
 import 'pages/settings_screen.dart';
 import 'package:provider/provider.dart';
-import 'providers/theme_provider.dart'; // Import the theme provider
+import 'providers/theme_provider.dart';
 import 'pages/theme_screen.dart';
 import 'pages/notifications_screen.dart';
 import 'pages/preferences_screen.dart';
 import 'services/notification_service.dart';
-import 'services/firestore.dart'; // Add this import
+import 'services/firestore.dart';
+import 'package:shared_preferences/shared_preferences.dart'; // NEW
+import 'pages/onboarding_screen.dart'
+;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -28,16 +31,24 @@ void main() async {
   final NotificationService notificationService = NotificationService();
   await notificationService.initialize();
 
-  // Initialize app with providers
+  // Check onboarding completion
+  final prefs = await SharedPreferences.getInstance(); // NEW
+  final seenOnboarding = prefs.getBool('onboarding_complete') ?? false; // NEW
+
+  // Run app
   runApp(
     ChangeNotifierProvider(
       create: (context) => ThemeProvider(),
-      child: MealPlannerApp(),
+      child: MealPlannerApp(seenOnboarding: seenOnboarding), // MODIFIED
     ),
   );
 }
 
 class MealPlannerApp extends StatefulWidget {
+  final bool seenOnboarding; // NEW
+
+  const MealPlannerApp({super.key, required this.seenOnboarding}); // NEW
+
   @override
   _MealPlannerAppState createState() => _MealPlannerAppState();
 }
@@ -48,8 +59,6 @@ class _MealPlannerAppState extends State<MealPlannerApp>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-
-    // Schedule notifications for current user's meals if they're logged in
     _scheduleNotificationsIfLoggedIn();
   }
 
@@ -62,21 +71,17 @@ class _MealPlannerAppState extends State<MealPlannerApp>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      // App came to foreground, reschedule notifications if logged in
       _scheduleNotificationsIfLoggedIn();
     }
   }
 
-  // Helper method to schedule notifications if the user is logged in
   Future<void> _scheduleNotificationsIfLoggedIn() async {
     final User? currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser != null) {
       try {
         final firestoreService = FirestoreService();
         await firestoreService.scheduleNotificationsForAllUserMeals();
-        debugPrint(
-          'Scheduled notifications for all meals of user: ${currentUser.uid}',
-        );
+        debugPrint('Scheduled notifications for all meals of user: ${currentUser.uid}');
       } catch (e) {
         debugPrint('Error scheduling notifications: $e');
       }
@@ -90,7 +95,7 @@ class _MealPlannerAppState extends State<MealPlannerApp>
     return MaterialApp(
       title: 'Meal Planner',
       theme: themeProvider.isDarkMode ? ThemeData.dark() : ThemeData.light(),
-      home: AuthWrapper(),
+      home: widget.seenOnboarding ? AuthWrapper() : OnboardingScreen(), // MODIFIED
       routes: {
         '/login': (context) => LoginScreen(),
         '/register': (context) => RegisterScreen(),
@@ -109,7 +114,6 @@ class _MealPlannerAppState extends State<MealPlannerApp>
   }
 }
 
-// Update AuthWrapper to reschedule notifications on login
 class AuthWrapper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -121,7 +125,6 @@ class AuthWrapper extends StatelessWidget {
           if (user == null) {
             return LoginScreen();
           } else {
-            // User is logged in, schedule notifications
             _scheduleUserMealNotifications(user.uid);
             return HomeScreen();
           }
@@ -131,7 +134,6 @@ class AuthWrapper extends StatelessWidget {
     );
   }
 
-  // Schedule notifications when user logs in
   Future<void> _scheduleUserMealNotifications(String userId) async {
     try {
       final firestoreService = FirestoreService();

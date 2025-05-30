@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../auth/auth_service.dart';
 import 'dart:async';
+import 'package:flutter/gestures.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -32,6 +34,63 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _confirmPasswordController.dispose();
     super.dispose();
   }
+
+  // Example method to show Terms and Conditions dialog/page
+void _showTermsAndConditions(BuildContext context) {
+  showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: Text('Terms and Conditions'),
+      content: SizedBox(
+        width: double.maxFinite,
+        child: SingleChildScrollView(
+          child: MarkdownBody(
+            data: '''
+
+Welcome to our App! By using this app, you agree to the following terms:
+
+## 1. Use of the App
+
+You agree to use the app only for lawful purposes and in accordance with these Terms.
+
+## 2. User Content
+
+You are responsible for any content you upload or share via the app. Do not post anything illegal, harmful, or offensive.
+
+## 3. Privacy
+
+We collect and handle your personal data as described in our Privacy Policy.
+
+## 4. Intellectual Property
+
+All content in the app is protected by copyright and other intellectual property laws.
+
+## 5. Limitation of Liability
+
+We are not liable for any damages resulting from your use of the app.
+
+## 6. Changes to Terms
+
+We may update these Terms from time to time. Continued use of the app means you accept those changes.
+
+## 7. Contact
+
+For questions or concerns, please contact our support team.
+
+Thank you for using our app!
+            ''',
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text('Close'),
+        ),
+      ],
+    ),
+  );
+}
 
   bool _isPasswordStrong(String password) {
     final regex = RegExp(r'^(?=.*[A-Z])(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$');
@@ -619,17 +678,34 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                         const SizedBox(width: 10),
                         Expanded(
-                          child: Text(
-                            'I agree to the Terms and Conditions',
-                            style: TextStyle(
-                              color: Colors.grey.shade700,
-                              fontSize: 15,
-                              fontWeight: FontWeight.w500,
+                           child: RichText(
+                            text: TextSpan(
+                              text: 'I agree to the ',
+                              style: TextStyle(
+                                color: Colors.grey.shade700,
+                                fontSize: 15,
+                                fontWeight: FontWeight.w500,
+                              ),
+                              children: [
+                                TextSpan(
+                                  text: 'Terms and Conditions',
+                                  style: TextStyle(
+                                    color: Colors.blue,
+                                    decoration: TextDecoration.underline,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                  recognizer: TapGestureRecognizer()
+                                    ..onTap = () {
+                                      // Handle the tap - show terms and conditions
+                                      _showTermsAndConditions(context);
+                                    },
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
-                        ),
-                      ],
-                    ),
+                        ],
+                      ),
                   ),
 
                   const SizedBox(height: 30),

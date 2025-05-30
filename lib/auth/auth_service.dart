@@ -19,7 +19,7 @@ class AuthService {
     );
   }
 
-  Future<UserCredential> createAccount({
+    Future<UserCredential> createAccount({
     required String name,
     required String email,
     required String password,
@@ -28,9 +28,9 @@ class AuthService {
         .createUserWithEmailAndPassword(email: email, password: password);
     try {
       await userCredential.user?.updateDisplayName(name);
+      await userCredential.user?.reload(); // 🔁 This ensures displayName is available immediately
     } catch (e) {
       debugPrint('⚠️ Failed to update display name: $e');
-      // This shouldn't block the registration, so we just log the warning.
     }
 
     return userCredential;

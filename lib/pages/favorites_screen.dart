@@ -6,36 +6,58 @@ import 'package:http/http.dart' as http;
 import '../models/recipe.dart';
 import '/screens/recipe_detail_screen.dart';
 
-// Enhanced unified color palette to match the purple theme in the image
 class AppColors {
-  static const Color primaryPurple = Color(0xFF6A4AA1);  // Deep purple from the image
-  static const Color secondaryPurple = Color(0xFF8B70C4); // Medium purple
-  static const Color lightPurple = Color(0xFFE7E1F7);    // Very light purple background
-  static const Color darkPurple = Color(0xFF4D2C91);     // Darker accent
-  static const Color white = Colors.white;
-  static const Color grey = Color(0xFFF8F8F8);
-  static const Color darkGrey = Color(0xFF555555);
+  static Color primaryPurple(Brightness brightness) =>
+      brightness == Brightness.dark ? Color(0xFFB39DDB) : Color(0xFF6A4AA1);
+
+  static Color secondaryPurple(Brightness brightness) =>
+      brightness == Brightness.dark ? Color(0xFFD1C4E9) : Color(0xFF8B70C4);
+
+  static Color lightPurple(Brightness brightness) =>
+      brightness == Brightness.dark ? Color(0xFF2C2C34) : Color(0xFFE7E1F7);
+
+  static Color darkPurple(Brightness brightness) =>
+      brightness == Brightness.dark ? Color(0xFFEDE7F6) : Color(0xFF4D2C91);
+
+  static Color white(Brightness brightness) =>
+      brightness == Brightness.dark ? Colors.black : Colors.white;
+
+  static Color grey(Brightness brightness) =>
+      brightness == Brightness.dark ? Color(0xFF121212) : Color(0xFFF8F8F8);
+
+  static Color darkGrey(Brightness brightness) =>
+      brightness == Brightness.dark ? Color(0xFFCCCCCC) : Color(0xFF555555);
+
   static const Color deleteRed = Color(0xFFE53935);
-  static const Color background = Color(0xFFFCFBFF);
+
+  static Color background(Brightness brightness) =>
+      brightness == Brightness.dark ? Color(0xFF1E1E1E) : Color(0xFFFCFBFF);
+
   static const Color accentYellow = Color(0xFFFFD54F);
-  
-  // Shadow colors
-  static Color shadowColor = darkPurple.withOpacity(0.08);
-  
-  // Gradient colors
-  static const List<Color> primaryGradient = [Color(0xFF5E35B1), Color(0xFF7E57C2)];
-  static const List<Color> backgroundGradient = [lightPurple, white];
+
+  static Color shadowColor(Brightness brightness) =>
+      darkPurple(brightness).withOpacity(0.08);
+
+  static List<Color> primaryGradient(Brightness brightness) =>
+      brightness == Brightness.dark
+          ? [Color(0xFF9575CD), Color(0xFFB39DDB)]
+          : [Color(0xFF5E35B1), Color(0xFF7E57C2)];
+
+  static List<Color> backgroundGradient(Brightness brightness) =>
+      brightness == Brightness.dark
+          ? [Color(0xFF2C2C34), Color(0xFF1E1E1E)]
+          : [lightPurple(brightness), white(brightness)];
 }
 
 class FavoritesScreen extends StatelessWidget {
-  // Enhanced design constants
   static final BorderRadius cardBorderRadius = BorderRadius.circular(18);
   static const double contentPadding = 16.0;
   static const double cardElevation = 4.0;
   static const double imageSize = 86.0;
-  
+
   Future<Recipe?> fetchRecipe(String recipeId) async {
-    final url = 'https://www.themealdb.com/api/json/v1/1/lookup.php?i=$recipeId';
+    final url =
+        'https://www.themealdb.com/api/json/v1/1/lookup.php?i=$recipeId';
     final response = await http.get(Uri.parse(url));
 
     if (response.statusCode == 200) {
@@ -55,7 +77,13 @@ class FavoritesScreen extends StatelessWidget {
     return null;
   }
 
-  void _showDeleteConfirmation(BuildContext context, String docId, String recipeName) {
+  void _showDeleteConfirmation(
+    BuildContext context,
+    String docId,
+    String recipeName,
+  ) {
+    final brightness = Theme.of(context).brightness;
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -64,13 +92,12 @@ class FavoritesScreen extends StatelessWidget {
             borderRadius: BorderRadius.circular(20),
           ),
           elevation: 10,
-          backgroundColor: AppColors.white,
+          backgroundColor: AppColors.white(brightness),
           child: Padding(
             padding: const EdgeInsets.all(24.0),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Enhanced header with icon
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
@@ -81,8 +108,8 @@ class FavoritesScreen extends StatelessWidget {
                         color: AppColors.deleteRed.withOpacity(0.12),
                         blurRadius: 12,
                         spreadRadius: 4,
-                      )
-                    ]
+                      ),
+                    ],
                   ),
                   child: Icon(
                     Icons.delete_outline_rounded,
@@ -91,42 +118,42 @@ class FavoritesScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 20),
-                
-                // Title with enhanced typography
                 Text(
                   'Remove Favorite',
                   style: TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.darkPurple,
+                    color: AppColors.darkPurple(brightness),
                     letterSpacing: -0.5,
                   ),
                 ),
                 const SizedBox(height: 16),
-                
-                // Message with improved typography
                 Text(
                   'Are you sure you want to remove "$recipeName" from your favorites?',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 16,
-                    color: AppColors.darkGrey,
+                    color: AppColors.darkGrey(brightness),
                     height: 1.4,
                   ),
                 ),
                 const SizedBox(height: 28),
-                
-                // Enhanced buttons in a row with equal width
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    // Cancel button with improved styling
                     Expanded(
                       child: OutlinedButton(
                         style: OutlinedButton.styleFrom(
-                          foregroundColor: AppColors.darkGrey,
-                          side: BorderSide(color: AppColors.darkGrey.withOpacity(0.3), width: 1.5),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          foregroundColor: AppColors.darkGrey(brightness),
+                          side: BorderSide(
+                            color: AppColors.darkGrey(
+                              brightness,
+                            ).withOpacity(0.3),
+                            width: 1.5,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
                           padding: EdgeInsets.symmetric(vertical: 14),
                         ),
                         child: Text(
@@ -140,14 +167,14 @@ class FavoritesScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 16),
-                    
-                    // Delete button with enhanced styling
                     Expanded(
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.deleteRed,
-                          foregroundColor: AppColors.white,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          foregroundColor: AppColors.white(brightness),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
                           padding: EdgeInsets.symmetric(vertical: 14),
                           elevation: 2,
                           shadowColor: AppColors.deleteRed.withOpacity(0.4),
@@ -176,20 +203,33 @@ class FavoritesScreen extends StatelessWidget {
   }
 
   void _deleteFavorite(String docId, BuildContext context) async {
+    final brightness = Theme.of(context).brightness;
+
     try {
-      await FirebaseFirestore.instance.collection('favorites').doc(docId).delete();
+      await FirebaseFirestore.instance
+          .collection('favorites')
+          .doc(docId)
+          .delete();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Row(
             children: [
-              Icon(Icons.check_circle_rounded, color: AppColors.white),
+              Icon(
+                Icons.check_circle_rounded,
+                color: AppColors.white(brightness),
+              ),
               SizedBox(width: 12),
-              Text('Removed from favorites', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+              Text(
+                'Removed from favorites',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+              ),
             ],
           ),
-          backgroundColor: AppColors.darkPurple,
+          backgroundColor: AppColors.darkPurple(brightness),
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           margin: EdgeInsets.all(16),
           duration: Duration(seconds: 2),
           elevation: 4,
@@ -200,14 +240,24 @@ class FavoritesScreen extends StatelessWidget {
         SnackBar(
           content: Row(
             children: [
-              Icon(Icons.error_outline_rounded, color: AppColors.white),
+              Icon(
+                Icons.error_outline_rounded,
+                color: AppColors.white(brightness),
+              ),
               SizedBox(width: 12),
-              Expanded(child: Text('Error deleting favorite: $e', style: TextStyle(fontSize: 16))),
+              Expanded(
+                child: Text(
+                  'Error deleting favorite: $e',
+                  style: TextStyle(fontSize: 16),
+                ),
+              ),
             ],
           ),
           backgroundColor: AppColors.deleteRed,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           margin: EdgeInsets.all(16),
           duration: Duration(seconds: 3),
           elevation: 4,
@@ -219,31 +269,40 @@ class FavoritesScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final User? currentUser = FirebaseAuth.instance.currentUser;
+    final brightness = Theme.of(context).brightness;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: AppColors.background(brightness),
       appBar: AppBar(
         title: Text(
           'Favorite Recipes',
           style: TextStyle(
-            color: AppColors.white,
+            color: AppColors.white(brightness),
             fontWeight: FontWeight.w700,
             fontSize: 22,
             letterSpacing: 0.5,
           ),
         ),
         centerTitle: true,
-        backgroundColor: AppColors.primaryPurple,
+        backgroundColor: AppColors.primaryPurple(brightness),
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios, color: AppColors.white, size: 22),
+          icon: Icon(
+            Icons.arrow_back_ios,
+            color: AppColors.white(brightness),
+            size: 22,
+          ),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        iconTheme: IconThemeData(color: AppColors.white),
+        iconTheme: IconThemeData(color: AppColors.white(brightness)),
         actions: [
           Padding(
             padding: EdgeInsets.only(right: 16),
-            child: Icon(Icons.favorite_rounded, size: 22, color: AppColors.white),
+            child: Icon(
+              Icons.favorite_rounded,
+              size: 22,
+              color: AppColors.white(brightness),
+            ),
           ),
         ],
       ),
@@ -252,18 +311,24 @@ class FavoritesScreen extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [AppColors.lightPurple.withOpacity(0.5), AppColors.white],
+            colors: [
+              AppColors.lightPurple(brightness).withOpacity(0.5),
+              AppColors.white(brightness),
+            ],
             stops: [0.0, 0.3],
           ),
         ),
-        child: currentUser == null
-            ? _buildLoginRequired(context)
-            : _buildFavoritesList(context, currentUser),
+        child:
+            currentUser == null
+                ? _buildLoginRequired(context)
+                : _buildFavoritesList(context, currentUser),
       ),
     );
   }
 
   Widget _buildLoginRequired(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24.0),
@@ -273,20 +338,20 @@ class FavoritesScreen extends StatelessWidget {
             Container(
               padding: EdgeInsets.all(28),
               decoration: BoxDecoration(
-                color: AppColors.lightPurple.withOpacity(0.6),
+                color: AppColors.lightPurple(brightness).withOpacity(0.6),
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.primaryPurple.withOpacity(0.2),
+                    color: AppColors.primaryPurple(brightness).withOpacity(0.2),
                     blurRadius: 16,
                     spreadRadius: 2,
-                  )
-                ]
+                  ),
+                ],
               ),
               child: Icon(
                 Icons.lock_outline_rounded,
                 size: 70,
-                color: AppColors.primaryPurple,
+                color: AppColors.primaryPurple(brightness),
               ),
             ),
             SizedBox(height: 32),
@@ -295,7 +360,7 @@ class FavoritesScreen extends StatelessWidget {
               style: TextStyle(
                 fontSize: 26,
                 fontWeight: FontWeight.bold,
-                color: AppColors.darkPurple,
+                color: AppColors.darkPurple(brightness),
                 letterSpacing: -0.5,
               ),
             ),
@@ -305,7 +370,7 @@ class FavoritesScreen extends StatelessWidget {
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 17,
-                color: AppColors.darkGrey,
+                color: AppColors.darkGrey(brightness),
                 height: 1.4,
               ),
             ),
@@ -314,22 +379,23 @@ class FavoritesScreen extends StatelessWidget {
               icon: Icon(Icons.login_rounded, size: 20),
               label: Text(
                 'Log In',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               onPressed: () {
                 // Navigate to login screen
-                // You might need to add this navigation logic
+                // Add your navigation logic here
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primaryPurple,
-                foregroundColor: AppColors.white,
+                backgroundColor: AppColors.primaryPurple(brightness),
+                foregroundColor: AppColors.white(brightness),
                 padding: EdgeInsets.symmetric(horizontal: 36, vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
                 elevation: 3,
-                shadowColor: AppColors.primaryPurple.withOpacity(0.4),
+                shadowColor: AppColors.primaryPurple(
+                  brightness,
+                ).withOpacity(0.4),
               ),
             ),
           ],
@@ -339,21 +405,23 @@ class FavoritesScreen extends StatelessWidget {
   }
 
   Widget _buildFavoritesList(BuildContext context, User currentUser) {
+    final brightness = Theme.of(context).brightness;
+
     return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance
-          .collection('favorites')
-          .where('user_id', isEqualTo: currentUser.uid)
-          .snapshots(),
+      stream:
+          FirebaseFirestore.instance
+              .collection('favorites')
+              .where('user_id', isEqualTo: currentUser.uid)
+              .snapshots(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return _buildLoadingState();
+          return _buildLoadingState(context);
         }
 
         if (snapshot.hasError) {
-          return _buildErrorState(snapshot.error);
+          return _buildErrorState(context, snapshot.error);
         }
 
-        // Get total count for the header card
         int totalFavorites = 0;
         if (snapshot.hasData) {
           totalFavorites = snapshot.data!.docs.length;
@@ -367,14 +435,17 @@ class FavoritesScreen extends StatelessWidget {
                 padding: EdgeInsets.symmetric(vertical: 20, horizontal: 24),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [AppColors.primaryPurple, AppColors.secondaryPurple],
+                    colors: [
+                      AppColors.primaryPurple(brightness),
+                      AppColors.secondaryPurple(brightness),
+                    ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.darkPurple.withOpacity(0.3),
+                      color: AppColors.darkPurple(brightness).withOpacity(0.3),
                       offset: Offset(0, 8),
                       blurRadius: 20,
                       spreadRadius: 0,
@@ -436,27 +507,36 @@ class FavoritesScreen extends StatelessWidget {
             if (!snapshot.hasData || snapshot.data!.docs.isEmpty)
               Expanded(child: _buildEmptyState(context))
             else
-              Expanded(child: _buildFavoritesListView(context, snapshot.data!.docs, currentUser)),
+              Expanded(
+                child: _buildFavoritesListView(
+                  context,
+                  snapshot.data!.docs,
+                  currentUser,
+                ),
+              ),
           ],
         );
       },
     );
   }
 
-  Widget _buildLoadingState() {
+  Widget _buildLoadingState(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryPurple),
+            valueColor: AlwaysStoppedAnimation<Color>(
+              AppColors.primaryPurple(brightness),
+            ),
             strokeWidth: 3,
           ),
           SizedBox(height: 20),
           Text(
             'Loading favorites...',
             style: TextStyle(
-              color: AppColors.darkPurple,
+              color: AppColors.darkPurple(brightness),
               fontWeight: FontWeight.w500,
               fontSize: 16,
             ),
@@ -466,7 +546,8 @@ class FavoritesScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildErrorState(Object? error) {
+  Widget _buildErrorState(BuildContext context, Object? error) {
+    final brightness = Theme.of(context).brightness;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24.0),
@@ -483,8 +564,8 @@ class FavoritesScreen extends StatelessWidget {
                     color: AppColors.deleteRed.withOpacity(0.1),
                     blurRadius: 20,
                     spreadRadius: 4,
-                  )
-                ]
+                  ),
+                ],
               ),
               child: Icon(
                 Icons.error_outline_rounded,
@@ -498,7 +579,7 @@ class FavoritesScreen extends StatelessWidget {
               style: TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
-                color: AppColors.darkPurple,
+                color: AppColors.darkPurple(brightness),
                 letterSpacing: -0.3,
               ),
             ),
@@ -510,7 +591,7 @@ class FavoritesScreen extends StatelessWidget {
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 16,
-                  color: AppColors.darkGrey,
+                  color: AppColors.darkGrey(brightness),
                   height: 1.4,
                 ),
               ),
@@ -522,6 +603,7 @@ class FavoritesScreen extends StatelessWidget {
   }
 
   Widget _buildEmptyState(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24.0),
@@ -531,20 +613,22 @@ class FavoritesScreen extends StatelessWidget {
             Container(
               padding: EdgeInsets.all(28),
               decoration: BoxDecoration(
-                color: AppColors.lightPurple.withOpacity(0.5),
+                color: AppColors.lightPurple(brightness).withOpacity(0.5),
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.primaryPurple.withOpacity(0.15),
+                    color: AppColors.primaryPurple(
+                      brightness,
+                    ).withOpacity(0.15),
                     blurRadius: 20,
                     spreadRadius: 2,
-                  )
-                ]
+                  ),
+                ],
               ),
               child: Icon(
                 Icons.favorite_border_rounded,
                 size: 70,
-                color: AppColors.primaryPurple,
+                color: AppColors.primaryPurple(brightness),
               ),
             ),
             SizedBox(height: 30),
@@ -553,7 +637,7 @@ class FavoritesScreen extends StatelessWidget {
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
-                color: AppColors.darkPurple,
+                color: AppColors.darkPurple(brightness),
                 letterSpacing: -0.5,
               ),
             ),
@@ -565,7 +649,7 @@ class FavoritesScreen extends StatelessWidget {
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 17,
-                  color: AppColors.darkGrey,
+                  color: AppColors.darkGrey(brightness),
                   height: 1.5,
                 ),
               ),
@@ -575,22 +659,22 @@ class FavoritesScreen extends StatelessWidget {
               icon: Icon(Icons.search_rounded, size: 20),
               label: Text(
                 'Discover Recipes',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               onPressed: () {
-                // Navigate back to recipe search or homepage
                 Navigator.of(context).pop();
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primaryPurple,
-                foregroundColor: AppColors.white,
+                backgroundColor: AppColors.primaryPurple(brightness),
+                foregroundColor: AppColors.white(brightness),
                 padding: EdgeInsets.symmetric(horizontal: 32, vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
                 elevation: 3,
-                shadowColor: AppColors.primaryPurple.withOpacity(0.4),
+                shadowColor: AppColors.primaryPurple(
+                  brightness,
+                ).withOpacity(0.4),
               ),
             ),
           ],
@@ -599,7 +683,11 @@ class FavoritesScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildFavoritesListView(BuildContext context, List<QueryDocumentSnapshot> favoriteDocs, User currentUser) {
+  Widget _buildFavoritesListView(
+    BuildContext context,
+    List<QueryDocumentSnapshot> favoriteDocs,
+    User currentUser,
+  ) {
     return ListView.builder(
       padding: EdgeInsets.fromLTRB(20, 10, 20, 20),
       physics: BouncingScrollPhysics(),
@@ -613,7 +701,7 @@ class FavoritesScreen extends StatelessWidget {
           future: fetchRecipe(recipeId),
           builder: (context, recipeSnapshot) {
             if (recipeSnapshot.connectionState == ConnectionState.waiting) {
-              return _buildLoadingCard();
+              return _buildLoadingCard(context);
             }
 
             if (!recipeSnapshot.hasData || recipeSnapshot.data == null) {
@@ -621,7 +709,7 @@ class FavoritesScreen extends StatelessWidget {
             }
 
             final recipe = recipeSnapshot.data!;
-            
+
             return _buildRecipeCard(context, recipe, docId, currentUser);
           },
         );
@@ -629,11 +717,13 @@ class FavoritesScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildLoadingCard() {
+  Widget _buildLoadingCard(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+
     return Card(
       margin: EdgeInsets.only(bottom: 16),
       elevation: cardElevation,
-      shadowColor: AppColors.shadowColor,
+      shadowColor: AppColors.shadowColor(brightness),
       shape: RoundedRectangleBorder(borderRadius: cardBorderRadius),
       child: Padding(
         padding: const EdgeInsets.all(contentPadding),
@@ -643,19 +733,21 @@ class FavoritesScreen extends StatelessWidget {
               width: imageSize,
               height: imageSize,
               decoration: BoxDecoration(
-                color: AppColors.lightPurple,
+                color: AppColors.lightPurple(brightness),
                 borderRadius: BorderRadius.circular(14),
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.shadowColor,
+                    color: AppColors.shadowColor(brightness),
                     blurRadius: 8,
                     offset: Offset(0, 2),
-                  )
-                ]
+                  ),
+                ],
               ),
               child: Center(
                 child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryPurple),
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    AppColors.primaryPurple(brightness),
+                  ),
                   strokeWidth: 2,
                 ),
               ),
@@ -669,7 +761,7 @@ class FavoritesScreen extends StatelessWidget {
                     height: 20,
                     width: double.infinity,
                     decoration: BoxDecoration(
-                      color: AppColors.grey,
+                      color: AppColors.grey(brightness),
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
@@ -678,7 +770,7 @@ class FavoritesScreen extends StatelessWidget {
                     height: 16,
                     width: 120,
                     decoration: BoxDecoration(
-                      color: AppColors.grey,
+                      color: AppColors.grey(brightness),
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
@@ -691,7 +783,7 @@ class FavoritesScreen extends StatelessWidget {
               height: 44,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppColors.grey,
+                color: AppColors.grey(brightness),
               ),
             ),
           ],
@@ -700,11 +792,17 @@ class FavoritesScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildRecipeNotFoundCard(String recipeId, String docId, BuildContext context) {
+  Widget _buildRecipeNotFoundCard(
+    String recipeId,
+    String docId,
+    BuildContext context,
+  ) {
+    final brightness = Theme.of(context).brightness;
+
     return Card(
       margin: EdgeInsets.only(bottom: 16),
       elevation: cardElevation,
-      shadowColor: AppColors.shadowColor,
+      shadowColor: AppColors.shadowColor(brightness),
       shape: RoundedRectangleBorder(borderRadius: cardBorderRadius),
       child: Padding(
         padding: const EdgeInsets.all(contentPadding),
@@ -714,18 +812,22 @@ class FavoritesScreen extends StatelessWidget {
               width: imageSize,
               height: imageSize,
               decoration: BoxDecoration(
-                color: AppColors.grey,
+                color: AppColors.grey(brightness),
                 borderRadius: BorderRadius.circular(14),
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.shadowColor,
+                    color: AppColors.shadowColor(brightness),
                     blurRadius: 8,
                     offset: Offset(0, 2),
-                  )
-                ]
+                  ),
+                ],
               ),
               child: Center(
-                child: Icon(Icons.image_not_supported_rounded, color: AppColors.darkGrey, size: 32),
+                child: Icon(
+                  Icons.image_not_supported_rounded,
+                  color: AppColors.darkGrey(brightness),
+                  size: 32,
+                ),
               ),
             ),
             SizedBox(width: 16),
@@ -738,7 +840,7 @@ class FavoritesScreen extends StatelessWidget {
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 18,
-                      color: AppColors.darkPurple,
+                      color: AppColors.darkPurple(brightness),
                       letterSpacing: -0.3,
                     ),
                   ),
@@ -747,7 +849,7 @@ class FavoritesScreen extends StatelessWidget {
                     'ID: $recipeId',
                     style: TextStyle(
                       fontSize: 14,
-                      color: AppColors.darkGrey,
+                      color: AppColors.darkGrey(brightness),
                     ),
                   ),
                   SizedBox(height: 10),
@@ -755,7 +857,7 @@ class FavoritesScreen extends StatelessWidget {
                     'This recipe may no longer be available',
                     style: TextStyle(
                       fontSize: 13,
-                      color: AppColors.darkGrey.withOpacity(0.7),
+                      color: AppColors.darkGrey(brightness).withOpacity(0.7),
                       fontStyle: FontStyle.italic,
                     ),
                   ),
@@ -766,7 +868,9 @@ class FavoritesScreen extends StatelessWidget {
               color: Colors.transparent,
               child: InkWell(
                 borderRadius: BorderRadius.circular(30),
-                onTap: () => _showDeleteConfirmation(context, docId, "this recipe"),
+                onTap:
+                    () =>
+                        _showDeleteConfirmation(context, docId, "this recipe"),
                 child: Container(
                   padding: EdgeInsets.all(10),
                   decoration: BoxDecoration(
@@ -777,10 +881,14 @@ class FavoritesScreen extends StatelessWidget {
                         color: AppColors.deleteRed.withOpacity(0.05),
                         blurRadius: 10,
                         spreadRadius: 1,
-                      )
-                    ]
+                      ),
+                    ],
                   ),
-                  child: Icon(Icons.delete_outline_rounded, color: AppColors.deleteRed, size: 24),
+                  child: Icon(
+                    Icons.delete_outline_rounded,
+                    color: AppColors.deleteRed,
+                    size: 24,
+                  ),
                 ),
               ),
             ),
@@ -790,11 +898,18 @@ class FavoritesScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildRecipeCard(BuildContext context, Recipe recipe, String docId, User currentUser) {
+  Widget _buildRecipeCard(
+    BuildContext context,
+    Recipe recipe,
+    String docId,
+    User currentUser,
+  ) {
+    final brightness = Theme.of(context).brightness;
+
     return Card(
       margin: EdgeInsets.only(bottom: 16),
       elevation: cardElevation,
-      shadowColor: AppColors.shadowColor,
+      shadowColor: AppColors.shadowColor(brightness),
       shape: RoundedRectangleBorder(borderRadius: cardBorderRadius),
       child: InkWell(
         borderRadius: cardBorderRadius,
@@ -802,7 +917,11 @@ class FavoritesScreen extends StatelessWidget {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => RecipeDetailScreen(recipe: recipe, userId: currentUser.uid),
+              builder:
+                  (_) => RecipeDetailScreen(
+                    recipe: recipe,
+                    userId: currentUser.uid,
+                  ),
             ),
           );
         },
@@ -819,11 +938,11 @@ class FavoritesScreen extends StatelessWidget {
                     borderRadius: BorderRadius.circular(14),
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.shadowColor,
+                        color: AppColors.shadowColor(brightness),
                         blurRadius: 8,
                         offset: Offset(0, 2),
-                      )
-                    ]
+                      ),
+                    ],
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(14),
@@ -832,8 +951,12 @@ class FavoritesScreen extends StatelessWidget {
                       fit: BoxFit.cover,
                       errorBuilder: (context, error, stackTrace) {
                         return Container(
-                          color: AppColors.grey,
-                          child: Icon(Icons.broken_image_rounded, color: AppColors.darkGrey, size: 32),
+                          color: AppColors.grey(brightness),
+                          child: Icon(
+                            Icons.broken_image_rounded,
+                            color: AppColors.darkGrey(brightness),
+                            size: 32,
+                          ),
                         );
                       },
                     ),
@@ -850,7 +973,7 @@ class FavoritesScreen extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: AppColors.darkPurple,
+                        color: AppColors.darkPurple(brightness),
                         letterSpacing: -0.3,
                         height: 1.2,
                       ),
@@ -859,18 +982,25 @@ class FavoritesScreen extends StatelessWidget {
                     ),
                     SizedBox(height: 10),
                     Container(
-                      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
                       decoration: BoxDecoration(
-                        color: AppColors.lightPurple,
+                        color: AppColors.lightPurple(brightness),
                         borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: AppColors.secondaryPurple.withOpacity(0.3)),
+                        border: Border.all(
+                          color: AppColors.secondaryPurple(
+                            brightness,
+                          ).withOpacity(0.3),
+                        ),
                       ),
                       child: Text(
                         recipe.category,
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
-                          color: AppColors.darkPurple,
+                          color: AppColors.darkPurple(brightness),
                         ),
                       ),
                     ),
@@ -882,7 +1012,9 @@ class FavoritesScreen extends StatelessWidget {
                 color: Colors.transparent,
                 child: InkWell(
                   borderRadius: BorderRadius.circular(30),
-                  onTap: () => _showDeleteConfirmation(context, docId, recipe.name),
+                  onTap:
+                      () =>
+                          _showDeleteConfirmation(context, docId, recipe.name),
                   child: Container(
                     padding: EdgeInsets.all(10),
                     decoration: BoxDecoration(
@@ -893,10 +1025,14 @@ class FavoritesScreen extends StatelessWidget {
                           color: AppColors.deleteRed.withOpacity(0.05),
                           blurRadius: 8,
                           spreadRadius: 1,
-                        )
-                      ]
+                        ),
+                      ],
                     ),
-                    child: Icon(Icons.delete_outline_rounded, color: AppColors.deleteRed, size: 24),
+                    child: Icon(
+                      Icons.delete_outline_rounded,
+                      color: AppColors.deleteRed,
+                      size: 24,
+                    ),
                   ),
                 ),
               ),

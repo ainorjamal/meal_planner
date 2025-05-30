@@ -26,7 +26,7 @@ class MealDetailsScreen extends StatelessWidget {
             ),
             SizedBox(height: 16),
             Text(
-              'Ingredients:',
+              'Description:',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             SizedBox(height: 8),
