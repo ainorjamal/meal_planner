@@ -7,6 +7,13 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](https://opensource.org/licenses/MIT)
 [![Platform](https://img.shields.io/badge/Platform-Android%20%7C%20iOS-lightgrey)]()
 
+<div align="center"><img src="assets/images/Meal Planner (4).png" alt="Kaon Ta Logo" width="150" /></div>
+
+A **cross-platform Flutter app** for **calendar-based meal planning**. Users can create, edit, and manage personalized meal plans, set reminders, and view stats. All data is synced and stored securely using **Firebase Firestore**.
+
+---
+
+
 A **cross-platform Flutter app** for **calendar-based meal planning**. Users can create, edit, and manage personalized meal plans, set reminders, and view stats. All data is synced and stored securely using **Firebase Firestore**.
 
 ---
