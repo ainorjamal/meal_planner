@@ -1,13 +1,18 @@
-Great! Here's an enhanced `README.md` with **badges**, **setup instructions**, and a spot for **GIF walkthroughs/screenshots**, based on your project info:
 
----
 
-# 💡 Mobile Meal Planner
+# 💡 Kaon Ta: A Mobile Meal Planner
 
 [![Flutter](https://img.shields.io/badge/Flutter-3.7.2-blue?logo=flutter)](https://flutter.dev)
 [![Firebase](https://img.shields.io/badge/Backend-Firebase-orange?logo=firebase)](https://firebase.google.com)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](https://opensource.org/licenses/MIT)
 [![Platform](https://img.shields.io/badge/Platform-Android%20%7C%20iOS-lightgrey)]()
+
+<div align="center"><img src="assets/images/Meal Planner (4).png" alt="Kaon Ta Logo" width="150" /></div>
+
+A **cross-platform Flutter app** for **calendar-based meal planning**. Users can create, edit, and manage personalized meal plans, set reminders, and view stats. All data is synced and stored securely using **Firebase Firestore**.
+
+---
+
 
 A **cross-platform Flutter app** for **calendar-based meal planning**. Users can create, edit, and manage personalized meal plans, set reminders, and view stats. All data is synced and stored securely using **Firebase Firestore**.
 
