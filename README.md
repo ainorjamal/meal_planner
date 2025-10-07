@@ -1,8 +1,6 @@
 
 
----
-
-# 💡 Mobile Meal Planner
+# 💡 Kaon Ta: A Mobile Meal Planner
 
 [![Flutter](https://img.shields.io/badge/Flutter-3.7.2-blue?logo=flutter)](https://flutter.dev)
 [![Firebase](https://img.shields.io/badge/Backend-Firebase-orange?logo=firebase)](https://firebase.google.com)
